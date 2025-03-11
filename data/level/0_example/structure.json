@@ -1,0 +1,37 @@
+{
+    "size": [11, 11],
+    "matrix": [
+      [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+      [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
+      [2, 0, 1, 1, 1, 0, 1, 1, 1, 0, 2],
+      [2, 0, 1, 0, 0, 0, 0, 0, 1, 0, 2],
+      [2, 0, 1, 0, 2, 2, 2, 0, 1, 0, 2],
+      [2, 0, 0, 0, 2, 0, 2, 0, 0, 0, 2],
+      [2, 0, 1, 0, 2, 2, 2, 0, 1, 0, 2],
+      [2, 0, 1, 0, 0, 0, 0, 0, 1, 0, 2],
+      [2, 0, 1, 1, 1, 0, 1, 1, 1, 0, 2],
+      [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
+      [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+    ],
+    "entities": {
+      "tile": [
+        { "type": "CrateGen", "x": 9, "y": 9, "crate_count": 2, "crate_type": "big"},
+        { "type": "CrateDel", "x": 5, "y": 5 },
+        { "type": "ChargePad", "x": 5, "y": 1 },
+        { "type": "Trap", "x": 4, "y": 4 }
+      ],
+      "ground": [
+        { "type": "Blue", "x": 2, "y": 2, "direction": "N" },
+        { "type": "Red", "x": 8, "y": 2, "direction": "S" },
+        { "type": "InputTer", "x": 6, "y": 3, "ter_one": "red", "ter_two": "blue"},
+        { "type": "OutputTer", "x": 7, "y": 7},
+        { "type": "Crate", "x": 4, "y": 7, "small": true },
+        { "type": "Crate", "x": 4, "y": 8, "small": false },
+        { "type": "Collectable", "x": 3, "y": 3 }
+      ],
+      "air": [
+        { "type": "Green", "x": 6, "y": 6, "direction": "W" }
+      ]
+    }
+  }
+  
