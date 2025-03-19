@@ -141,7 +141,7 @@ class LevelSelect:
                         self.select_level(folder)
                 match event.ui_element:
                     case self.play_button if self.selected_level:
-                        self.change_scene("game", self.selected_level)
+                        self.change_scene("game", self.selected_level, os.path.join(LEVEL_FOLDER, self.selected_level))
                     case self.back_button:
                         self.change_scene("menu")
             case pygame.QUIT:

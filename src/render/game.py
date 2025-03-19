@@ -5,12 +5,14 @@ from src.render.render_sprite import load_sprite
 
 
 class GameScreen:
-    def __init__(self, screen, manager, change_scene, game_manager, level_name):
+    def __init__(self, screen, manager, change_scene, game_manager, level_name, level_folder):
         self.screen = screen
         self.manager = manager
         self.change_scene = change_scene
         self.game_manager = game_manager
         self.level_name = level_name
+        self.current_robot = None
+        self.folder = level_folder
 
         self.game_manager.load_level(level_name)
 
@@ -52,7 +54,6 @@ class GameScreen:
             container=self.ui_panel,
             object_id="objective_list"
         )
-        
 
         # Coding area (Text Editor)
         self.code_input = pygame_gui.elements.UITextEntryBox(
@@ -61,6 +62,7 @@ class GameScreen:
             container=self.ui_panel,
             object_id="code_editor"
         )
+        self.update_code_input()
 
         # Buttons
         self.play_button = pygame_gui.elements.UIButton(
@@ -120,13 +122,20 @@ class GameScreen:
                         self.change_scene("level_select")
                     case self.play_button:
                         print("Play pressed! (Will trigger script execution)")
+                        self.game_manager.save_script(self.code_input.get_text())
+                        self.code_input.disable()
+                        self.code_input.set_text("Simulation running...\n\nScript editing is disabled.")
                         self.game_manager.start_game()
                     case self.reset_button:
                         print("Reset pressed! (Will reset level state)")
+                        if not self.game_manager.is_running:
+                            self.game_manager.save_script(self.code_input.get_text())
                         self.game_manager.reset_level()
+                        self.update_code_input()
             case pygame.KEYDOWN:
                 # If the code editor is focused, don't handle camera movement
                 if not self.code_input.is_focused:
+                    self.game_manager.save_script(self.code_input.get_text())
                     match event.key:
                         case pygame.K_UP:
                             self.game_manager.move_camera("up")
@@ -136,15 +145,25 @@ class GameScreen:
                             self.game_manager.move_camera("left")
                         case pygame.K_RIGHT:
                             self.game_manager.move_camera("right")
+                    self.update_code_input()
+                    
 
+    def update_code_input(self):
+        if self.game_manager.camera_robot:
+            self.code_input.enable()
+            self.code_input.set_text(self.game_manager.load_script())
+        else:
+            self.code_input.disable()
+            self.code_input.set_text("No bot selected\n\nSelect a bot to modify it's script.")
+            
 
     def update(self, time_delta):
         self.manager.update(time_delta)
-
+        
 
     def render(self):
         """Render the game screen."""
-        self.screen.fill((0, 0, 0))  # Clear the screen
+        self.screen.fill((0, 0, 0))
         self.update_objectives()
         self.manager.draw_ui(self.screen)
 
@@ -167,7 +186,7 @@ class GameScreen:
         pygame.draw.rect(self.screen, border_color, (grid_x - border_thickness, grid_y - border_thickness, grid_width + 2 * border_thickness, grid_height + 2 * border_thickness), border_thickness)
 
         self.render_level(grid_x, grid_y)  # Pass adjusted position
-
+           
 
     def update_objectives(self):
         """
@@ -290,20 +309,32 @@ class GameScreen:
                                         sprite_name = f"{entity_name}_small.png"
                                     else:
                                         sprite_name = f"{entity_name}.png"
+                                case "inputter":
+                                    match entity.operation:
+                                        case "+":
+                                            sprite_name = f"{entity_name}_add.png"
+                                        case "-":
+                                            sprite_name = f"{entity_name}_sub.png"
+                                        case "*":
+                                            sprite_name = f"{entity_name}_mul.png"
+                                        case "/":
+                                            sprite_name = f"{entity_name}_div.png"
+
                                 case _:
                                     sprite_name = f"{entity.__class__.__name__.lower()}.png"
 
-                            sprite = load_sprite(sprite_name, self.tile_size, color_on=color, color_off='#010001')
+                            sprite = load_sprite(sprite_name, self.tile_size, color_on=color, color_off='#010001', entity=entity)
                             rotation = {"N": 0, "E": 90, "S": 180, "W": 270}.get(entity.direction, 0)
                             sprite = pygame.transform.rotate(sprite, rotation)
                             self.screen.blit(sprite, (screen_x, screen_y))
 
                 else:
-                    pygame.draw.rect(self.screen, (100, 100, 100), (screen_x, screen_y, self.tile_size - 1, self.tile_size - 1))
+                    pygame.draw.rect(self.screen, (0, 0, 0), (screen_x, screen_y, self.tile_size - 1, self.tile_size - 1))
 
 
     def resize(self):
         last_script = self.code_input.get_text()  # Preserve the script
+        self.game_manager.save_script(last_script)  # Save the script to a file
         self.manager.clear_and_reset()
         self.calculate_viewport()
         self.create_ui()
@@ -312,4 +343,7 @@ class GameScreen:
 
     def destroy(self):
         logging.debug("Destroying game scene")
+        # Save last script before that
+        last_script = self.code_input.get_text()
+        self.game_manager.save_script(last_script)
         self.manager.clear_and_reset()

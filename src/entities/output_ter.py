@@ -11,10 +11,10 @@ class OutputTer(Entity):
     Output terminals serve as objectives in the game, requiring a blue robot to get a number from them.
     """
 
-    def __init__(self, x, y, height):
+    def __init__(self, x, y, color, height):
         super().__init__(x, y, height, pickable=False)
         self.pickable = False  # Output terminals cannot be picked up
-        self.color = None  # Color of the terminal, will be used as ID for input terminals to request the number from here
+        self.color = color  # Color of the terminal, will be used as ID for input terminals to request the number from here
         self.number = self.generate_number()  # Number stored in the output terminal
 
 

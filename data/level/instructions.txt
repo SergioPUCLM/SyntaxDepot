@@ -15,6 +15,6 @@ BG defines the tilemap. While not required, it will work better if the size of t
 
 Other folders will be created when needed (DO NOT ADD THEM):
 - leaderboard.json
-- red.txt
-- green.txt
-- blue.txt
+- red
+- green
+- blue

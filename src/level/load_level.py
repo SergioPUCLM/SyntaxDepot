@@ -77,7 +77,7 @@ def load_level(folder):
                 "CrateGen": lambda e: CrateGen(e["x"], e["y"], 0, e.get("crate_count", 0), e.get("crate_type", "big")),
                 "Crate": lambda e: Crate(e["x"], e["y"], 0, small=e.get("small", False)),
                 "InputTer": lambda e: InputTer(e["x"], e["y"], 0, e.get("ter_one"), e.get("ter_two")),
-                "OutputTer": lambda e: OutputTer(e["x"], e["y"], 0),
+                "OutputTer": lambda e: OutputTer(e["x"], e["y"], e["color"], 0),
             }
 
             # Step 4: Load entities
@@ -130,17 +130,21 @@ def load_level(folder):
                                     level.objectives["crates_small"] += 1
                                 else:
                                     level.objectives["crates_large"] += 1
-                            case "crateGen":
+                            case "CrateGen":
                                 if obj.crate_type == "small":
                                     level.objectives["crates_small"] += obj.crate_count
+                                    print(f"Crate gen added with {obj.crate_count} small crates.")
                                 else:
                                     level.objectives["crates_large"] += obj.crate_count
+                                    print(f"Crate gen added with {obj.crate_count} large crates.")
                             case "outputTer":
                                 required_terminals.append(obj.color)
                             case "inputTer":
                                 existing_terminals.append(obj.input_ter_one)
                                 existing_terminals.append(obj.input_ter_two)
-                        level.add_entity(obj)
+                        
+                        if not level.add_entity(obj):
+                            return None
                     else:
                         logging.error(f"Unknown entity type: {entity_type}")
 

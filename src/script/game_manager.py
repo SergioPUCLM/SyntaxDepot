@@ -1,8 +1,11 @@
 """Game manager class"""
 
+import os
 import pygame
 import logging
 from src.level.load_level import load_level
+
+LEVEL_FOLDER = "data/level/"
 
 class GameManager:
     def __init__(self):
@@ -11,6 +14,7 @@ class GameManager:
         self.is_running = False  # Whether the game is active (robots are moving)
         self.is_paused = False
         self.frame_count = 0
+        self.camera_robot = None  # The robot that the camera is over
 
         self.entity_list = {  # Store entities for easy updates
             'tile': [],
@@ -67,6 +71,17 @@ class GameManager:
         if self.current_level:
             logging.info(f"Level loaded")
             self.level_folder = level_folder
+            self.camera_robot = None
+            self.completed_objectives = {  # Reset the objectives
+                "charge_pads": 0,
+                "crates_small": 0,
+                "crates_large": 0,
+                "terminals": 0,
+                "collectables": 0,
+            }
+            self.is_running = False
+            self.is_paused = False
+            self.frame_count = 0
             self.update_entities()
         else:
             logging.error(f"Failed to load level: {level_folder}")
@@ -86,7 +101,7 @@ class GameManager:
     def reset_level(self):
         """Resets the current level, resetting all entities to their original positions and pausing the game."""
         self.load_level(self.level_folder)
-        self.is_paused = not self.is_paused  # Pause the game
+        self.is_running = False  # Stop the game
         logging.info("Level reset.")
 
 
@@ -117,8 +132,59 @@ class GameManager:
             camera_x, camera_y = self.current_level.get_camera_position()
             camera_obj = self.current_level.tiles[camera_y][camera_x]
             self.current_level.move_entity(camera_obj.entities['camera'], direction)
+            self.update_selected_robot()
         else:
             logging.error("Cannot move camera without a level loaded")
+
+
+    def update_selected_robot(self):
+        """Updates the selected robot."""
+        camera_x, camera_y = self.current_level.get_camera_position()
+        camera_obj = self.current_level.tiles[camera_y][camera_x]
+        tile = self.current_level.tiles[camera_y][camera_x]
+        if tile.entities['air']:
+            logging.debug(f"Camera entity: {tile.entities['air']}")
+            if tile.entities['air'].__class__.__name__.lower() == "green":
+                self.camera_robot = "green"
+            else:
+                self.camera_robot = None
+        elif tile.entities['ground']:
+            logging.debug(f"Camera entity: {tile.entities['ground']}")
+            if tile.entities['ground'].__class__.__name__.lower() == "red":
+                self.camera_robot = "red"
+            elif tile.entities['ground'].__class__.__name__.lower() == "blue":
+                self.camera_robot = "blue"
+            else:
+                self.camera_robot = None
+        else:
+            logging.debug(f"Camera entity: None")
+            self.camera_robot = None
+
+
+    def save_script(self, script):
+        """Save the current script to a file."""
+        if self.camera_robot:
+            file = os.path.join(LEVEL_FOLDER, self.level_folder, f"{self.camera_robot}.txt")
+            logging.debug(f"Saving script to {file}")
+            with open(file, "w") as f:
+                f.write(script)
+        else:
+            logging.error("Cannot save script without a robot selected")
+
+    
+    def load_script(self):
+        """Load a script from a file."""
+        script = ""
+        if self.camera_robot:
+            file = os.path.join(LEVEL_FOLDER, self.level_folder, f"{self.camera_robot}.txt")
+            if os.path.exists(file):
+                with open(file, "r") as f:
+                    script = f.read()
+                script = script.strip()  # Remove leading and trailing whitespace
+            return script
+        else:
+            logging.error("Cannot load script without a robot selected")
+            return ""
 
 
     def tick(self):

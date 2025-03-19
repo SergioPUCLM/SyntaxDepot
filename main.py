@@ -60,7 +60,7 @@ def main():
 
 
     # Scene management
-    def change_scene(new_scene, level_name=None):
+    def change_scene(new_scene, level_name=None, level_folder=None):
         """Changes the current scene and resets UI elements."""
         nonlocal current_scene, manager, running
 
@@ -79,7 +79,7 @@ def main():
         match new_scene:
             case "game":
                 raw_name = level_name.split("_", 1)[1]
-                scenes[new_scene] = GameScreen(screen, manager, change_scene, game_manager, level_name)
+                scenes[new_scene] = GameScreen(screen, manager, change_scene, game_manager, level_name, level_folder)
                 pygame.display.set_caption(f"{GAME_NAME} - Playing level: {raw_name}")
             case "level_select":
                 scenes[new_scene] = LevelSelect(screen, manager, change_scene, game_manager)

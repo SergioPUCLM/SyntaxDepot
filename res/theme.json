@@ -160,9 +160,7 @@
         "colours": {
             "normal_border": "#FFFFFFFF",
             "dark_bg": "#FFFFFF00",
-            "normal_text": "#04FF00FF",
-            "disabled_bg": "#000000FF",
-            "disabled_text": "#03A100FF"
+            "normal_text": "#04FF00FF"
         },
         "font": {
             "name": "PixelOperatorMono8",
@@ -172,9 +170,37 @@
             "shape": "rounded_rectangle",
             "shape_corner_radius": "10",
             "border_width": "3",
-            "line_spacing": "1.5"
+            "line_spacing": "1"
         }
     },
+    "code_editor.vertical_scroll_bar": {
+        "colours": {
+            "normal_bg": "#FFFFFF00",
+            "hovered_bg": "#FFFFFF30",
+            "disabled_bg": "#FFFFFF00"
+        },
+        "misc": {
+            "border_width": "0",
+            "shape": "rounded_rectangle",
+            "shape_corner_radius": "10",
+            "shadow_width": "0",
+            "enable_arrow_buttons": "0",
+            "width": 15
+        }
+    },
+    "code_editor.vertical_scroll_bar.#sliding_button": {
+        "colours": {
+            "normal_bg": "#FFFFFFAA",
+            "hovered_bg": "#FFFFFFFF",
+            "disabled_bg": "#FFFFFF00"
+        },
+        "misc": {
+            "border_width": "0",
+            "shape": "rounded_rectangle",
+            "shape_corner_radius": "10"
+        }
+    },
+
     "objective_list": {
         "colours": {
             "normal_border": "#FFFFFFFF",
@@ -192,6 +218,33 @@
             "shape_corner_radius": "10",
             "border_width": "3",
             "line_spacing": "1.5"
+        }
+    },
+    "objective_list.vertical_scroll_bar": {
+        "colours": {
+            "normal_bg": "#FFFFFF00",
+            "hovered_bg": "#FFFFFF30",
+            "disabled_bg": "#FFFFFF00"
+        },
+        "misc": {
+            "border_width": "0",
+            "shape": "rounded_rectangle",
+            "shape_corner_radius": "10",
+            "shadow_width": "0",
+            "enable_arrow_buttons": "0",
+            "width": 15
+        }
+    },
+    "objective_list.vertical_scroll_bar.#sliding_button": {
+        "colours": {
+            "normal_bg": "#FFFFFFAA",
+            "hovered_bg": "#FFFFFFFF",
+            "disabled_bg": "#FFFFFF00"
+        },
+        "misc": {
+            "border_width": "0",
+            "shape": "rounded_rectangle",
+            "shape_corner_radius": "10"
         }
     }
 }

@@ -12,7 +12,7 @@ class Level:
     It contains a 2D array of tiles, each representing a cell in the level, a list of objectives, and the size of the level.
     """
     def __init__(self, width, height, background_image):
-        self.tile_size = 32
+        self.tile_size = 64
         self.width = width
         self.height = height
 
