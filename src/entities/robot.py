@@ -14,7 +14,7 @@ class Robot(Entity):
         self.direction = direction  # Direction the robot is facing, can be 'N', 'S', 'E', 'W'
         self.pickable = False  # Robots cannot be picked up
 
-        self.script = ""  # Script to be executed by the robot TODO: Define how scripts are handled
+        self.script = ""  # Script to be executed by the robot
         self.color = ""  # Color of the robot, can be 'Red', 'Green', 'Blue'
 
 

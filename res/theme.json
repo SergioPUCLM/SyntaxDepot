@@ -246,5 +246,72 @@
             "shape": "rounded_rectangle",
             "shape_corner_radius": "10"
         }
+    },
+
+    "error_panel_info": {
+        "colours": {
+            "dark_bg": "#0C1E2AFF",
+            "normal_border": "#FFFFFFFF"
+        },
+        "misc": {
+            "shape": "rounded_rectangle",
+            "shape_corner_radius": "10",
+            "border_width": "3"
+        }
+    },
+
+    "error_panel_warning": {
+        "colours": {
+            "dark_bg": "#2A260CFF",
+            "normal_border": "#FFFFFFFF"
+        },
+        "misc": {
+            "shape": "rounded_rectangle",
+            "shape_corner_radius": "10",
+            "border_width": "3"
+        }
+    },
+
+    "error_panel_error": {
+        "colours": {
+            "dark_bg": "#2A0C0CFF",
+            "normal_border": "#FFFFFFFF"
+        },
+        "misc": {
+            "shape": "rounded_rectangle",
+            "shape_corner_radius": "10",
+            "border_width": "3"
+        }
+    },
+
+    "error_title": {
+        "colours": {
+            "normal_text": "#FFFFFFFF"
+        },
+        "font": {
+            "name": "PixelOperator8",
+            "size": 18,
+            "bold": true
+        },
+        "misc": {
+            "text_horiz_alignment": "left"
+        }
+    },
+
+    "error_message_textbox": {
+        "colours": {
+            "normal_text": "#FFFFFFFF",
+            "dark_bg" : "#1C1E2FFF",
+            "normal_border": "#FFFFFFFF"
+        },
+        "font": {
+            "name": "PixelOperator8",
+            "size": 12
+        },
+        "misc": {
+            "shape": "rounded_rectangle",
+            "shape_corner_radius": "10",
+            "border_width": "1"
+        }
     }
 }

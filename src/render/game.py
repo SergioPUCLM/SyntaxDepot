@@ -2,6 +2,8 @@ import pygame
 import pygame_gui
 import logging
 from src.render.render_sprite import load_sprite
+from src.render.error_handler import error_handler, ErrorLevel
+from src.render.sound_manager import sound_manager
 
 
 class GameScreen:
@@ -111,41 +113,45 @@ class GameScreen:
         if self.tiles_y % 2 == 0:
             self.tiles_y -= 1
 
-        logging.debug(f"Viewport: {self.tiles_x} x {self.tiles_y} tiles")
-
 
     def handle_events(self, event):
         match event.type:
+            case pygame.QUIT:
+                self.game_manager.save_script(self.code_input.get_text())
             case pygame_gui.UI_BUTTON_PRESSED:
                 match event.ui_element:
-                    case self.exit_button:
+                    case self.exit_button:  # Exit button
+                        error_handler.dismiss_all()
+                        self.game_manager.save_script(self.code_input.get_text())
                         self.change_scene("level_select")
-                    case self.play_button:
-                        print("Play pressed! (Will trigger script execution)")
+                    case self.play_button:  # Play button
+                        error_handler.dismiss_all()
                         self.game_manager.save_script(self.code_input.get_text())
                         self.code_input.disable()
                         self.code_input.set_text("Simulation running...\n\nScript editing is disabled.")
                         self.game_manager.start_game()
-                    case self.reset_button:
-                        print("Reset pressed! (Will reset level state)")
+                    case self.reset_button:  # Reset button
+                        error_handler.dismiss_all()
                         if not self.game_manager.is_running:
                             self.game_manager.save_script(self.code_input.get_text())
                         self.game_manager.reset_level()
                         self.update_code_input()
-            case pygame.KEYDOWN:
-                # If the code editor is focused, don't handle camera movement
+            case pygame.KEYDOWN:  # Keyboard input
                 if not self.code_input.is_focused:
-                    self.game_manager.save_script(self.code_input.get_text())
-                    match event.key:
-                        case pygame.K_UP:
-                            self.game_manager.move_camera("up")
-                        case pygame.K_DOWN:
-                            self.game_manager.move_camera("down")
-                        case pygame.K_LEFT:
-                            self.game_manager.move_camera("left")
-                        case pygame.K_RIGHT:
-                            self.game_manager.move_camera("right")
-                    self.update_code_input()
+                    if event.key in (pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT, pygame.K_w, pygame.K_s, pygame.K_a, pygame.K_d):
+                        if not self.game_manager.is_running:
+                            self.game_manager.save_script(self.code_input.get_text())
+                        match event.key:
+                            case pygame.K_UP | pygame.K_w:
+                                self.game_manager.move_camera("up")
+                            case pygame.K_DOWN | pygame.K_s:
+                                self.game_manager.move_camera("down")
+                            case pygame.K_LEFT | pygame.K_a:
+                                self.game_manager.move_camera("left")
+                            case pygame.K_RIGHT | pygame.K_d:
+                                self.game_manager.move_camera("right")
+                        if not self.game_manager.is_running:
+                            self.update_code_input()
                     
 
     def update_code_input(self):
@@ -298,33 +304,37 @@ class GameScreen:
                                     else:
                                         sprite_name = f"{entity_name}.png"
                                 case "red":
-                                    if entity.crate == "small":
+                                    if entity.crate == None:
+                                        sprite_name = f"{entity_name}.png"
+                                    elif entity.crate.small == "small":
                                         sprite_name = f"{entity_name}_small.png"
-                                    elif entity.crate == "big":
+                                    else:
                                         sprite_name = f"{entity_name}_big.png"
-                                    else:
-                                        sprite_name = f"{entity_name}.png"
                                 case "green":
-                                    if entity.crate == "small":
-                                        sprite_name = f"{entity_name}_small.png"
-                                    else:
+                                    if entity.crate == None:
                                         sprite_name = f"{entity_name}.png"
+                                    else:
+                                        sprite_name = f"{entity_name}_small.png"
                                 case "inputter":
-                                    match entity.operation:
-                                        case "+":
-                                            sprite_name = f"{entity_name}_add.png"
-                                        case "-":
-                                            sprite_name = f"{entity_name}_sub.png"
-                                        case "*":
-                                            sprite_name = f"{entity_name}_mul.png"
-                                        case "/":
-                                            sprite_name = f"{entity_name}_div.png"
+                                    if not entity.activated:
+                                        match entity.operation:
+                                            case "+":
+                                                sprite_name = f"{entity_name}_add.png"
+                                            case "-":
+                                                sprite_name = f"{entity_name}_sub.png"
+                                            case "*":
+                                                sprite_name = f"{entity_name}_mul.png"
+                                            case "/":
+                                                sprite_name = f"{entity_name}_div.png"
+                                    else:
+                                        sprite_name = f"{entity_name}_done.png"
 
                                 case _:
                                     sprite_name = f"{entity.__class__.__name__.lower()}.png"
 
                             sprite = load_sprite(sprite_name, self.tile_size, color_on=color, color_off='#010001', entity=entity)
-                            rotation = {"N": 0, "E": 90, "S": 180, "W": 270}.get(entity.direction, 0)
+                            # N = Up, E = Right, S = Down, W = Left
+                            rotation = {"N": 0, "E": 270, "S": 180, "W": 90}.get(entity.direction, 0)
                             sprite = pygame.transform.rotate(sprite, rotation)
                             self.screen.blit(sprite, (screen_x, screen_y))
 
@@ -346,4 +356,6 @@ class GameScreen:
         # Save last script before that
         last_script = self.code_input.get_text()
         self.game_manager.save_script(last_script)
+        self.game_manager.is_paused = False
+        self.game_manager.is_running = False
         self.manager.clear_and_reset()

@@ -174,3 +174,7 @@ cython_debug/
 red.txt
 blue.txt
 green.txt
+
+# Parser files
+parsetab.py
+parser.out

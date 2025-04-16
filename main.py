@@ -5,6 +5,7 @@ import os
 import logging
 import pygame
 import pygame_gui
+from pygame_gui.core.text.text_box_layout_row import TextBoxLayoutRow
 
 from src.setup import setup_paths
 setup_paths()  # Set up the package paths for local imports
@@ -15,6 +16,8 @@ from src.render.level_select import LevelSelect
 from src.render.game import GameScreen
 from src.render.missing_image import missing_texture_pygame
 from src.script.game_manager import GameManager
+from src.render.error_handler import error_handler
+from src.render.sound_manager import sound_manager
 
 # Constants
 SCREEN_WIDTH = 1000
@@ -28,6 +31,22 @@ def main():
     """
     Main function of the game.
     """
+    # Monkey-patch pygame_gui to fix text box insert errors
+    og_text_insert = TextBoxLayoutRow.insert_text
+    def safe_insert_text(self, text, index_in_row, parser):
+        """
+        Attempt to insert text into the TextBoxLayoutRow by clamping the index.
+        This is a workaround for a bug in pygame_gui that causes text insertion to fail.
+        It will still fail to insert the text BUT it will not crash the game.
+        Ideally, they should patch this on their end, but that could take a while.
+        """
+        index_in_row = min(index_in_row, self.letter_count)  # Clamp it to try and fix it
+        try:
+            return og_text_insert(self, text, index_in_row, parser)
+        except RuntimeError as e:
+            return False
+
+    TextBoxLayoutRow.insert_text = safe_insert_text
 
     # Set up logging
     logging.basicConfig(level=logging.DEBUG)
@@ -50,8 +69,17 @@ def main():
     manager.get_theme().get_font_dictionary().add_font_path("PixelOperatorMono8", FONTS[1])  # Add the custom font 2
     manager.get_theme().load_theme("./res/theme.json")  # Load the theme
 
+    pygame.mixer.init()
+    sound_manager.initialize()
+    pygame.mixer.set_num_channels(2)  # Channel 0 = music, 1 = SFX
+
+    error_handler.set_ui_manager(manager)  # Set the UI manager for the error handler
+    error_handler.load_icons()  # Load the icons for the error handler
+
+    # TODO: Load the sounds into the sound manager
+
     try:
-        icon = pygame.image.load(os.path.join("assets", "icon.png"))  # Load the icon
+        icon = pygame.image.load(os.path.join("res", "icon.png"))  # Load the icon
     except FileNotFoundError:
         logging.error("Icon not found. Using fallback texture")
         icon = missing_texture_pygame(size_x=16, size_y=16)
@@ -107,8 +135,6 @@ def main():
     FPS = 60
     running = True
 
-    logging.debug(f"Entering game loop with scene: {current_scene}")
-
     while running:
         time_delta = clock.tick(FPS) / 1000.0  # Convert to seconds
 
@@ -127,10 +153,13 @@ def main():
 
         # Update and render
         manager.update(time_delta)
+        error_handler.update(time_delta)
+
         screen.fill((0, 0, 0))  # Black background
         scenes[current_scene].render()
         if scenes["game"]:
             scenes["game"].game_manager.tick()  # Update the game state
+        manager.draw_ui(screen)
         pygame.display.flip()
 
     pygame.quit()

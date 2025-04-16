@@ -1,9 +1,10 @@
 """Entity class"""
 
 import logging
+from abc import ABC
 
 
-class Entity:
+class Entity(ABC):
     """
     Entity class, defining the basic structure of an entity in-game. This is a super class for all entities in the game.
     """

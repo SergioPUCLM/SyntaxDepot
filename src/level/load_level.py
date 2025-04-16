@@ -76,7 +76,7 @@ def load_level(folder):
                 "CrateDel": lambda e: CrateDel(e["x"], e["y"], 0),
                 "CrateGen": lambda e: CrateGen(e["x"], e["y"], 0, e.get("crate_count", 0), e.get("crate_type", "big")),
                 "Crate": lambda e: Crate(e["x"], e["y"], 0, small=e.get("small", False)),
-                "InputTer": lambda e: InputTer(e["x"], e["y"], 0, e.get("ter_one"), e.get("ter_two")),
+                "InputTer": lambda e: InputTer(e["x"], e["y"], 0, e.get("ter_one"), e.get("ter_two"), e.get("operation")),
                 "OutputTer": lambda e: OutputTer(e["x"], e["y"], e["color"], 0),
             }
 
@@ -98,8 +98,14 @@ def load_level(folder):
                             numerical_height = 0  # Default to 0 to prevent crashes
 
                     # Create the entity if the type is valid
+                    valid_operations = ["+", "-", "*", "/"]
                     if entity_type in entity_classes:
-                        obj = entity_classes[entity_type](entity)
+                        # Don't create an input terminal if the operation is not valid
+                        if entity_type == "InputTer" and entity.get("operation") not in valid_operations:
+                            logging.error(f"Invalid operation for InputTer: {entity.get('operation')}")
+                            continue  # Skip this entity
+
+                        obj = entity_classes[entity_type](entity)  # Create the entity using the mapping
                         obj.height = numerical_height  # Change the height to the numerical value
 
                         match entity_type:
@@ -133,15 +139,14 @@ def load_level(folder):
                             case "CrateGen":
                                 if obj.crate_type == "small":
                                     level.objectives["crates_small"] += obj.crate_count
-                                    print(f"Crate gen added with {obj.crate_count} small crates.")
                                 else:
                                     level.objectives["crates_large"] += obj.crate_count
-                                    print(f"Crate gen added with {obj.crate_count} large crates.")
-                            case "outputTer":
+                            case "OutputTer":
                                 required_terminals.append(obj.color)
-                            case "inputTer":
+                            case "InputTer":
                                 existing_terminals.append(obj.input_ter_one)
                                 existing_terminals.append(obj.input_ter_two)
+                                level.objectives["terminals"] += 1
                         
                         if not level.add_entity(obj):
                             return None

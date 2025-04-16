@@ -11,12 +11,13 @@ class InputTer(Entity):
     Input terminals serve as objectives in the game, requiring a blue robot to input the operation of two terminals.
     """
 
-    def __init__(self, x, y, height, ter_one=None, ter_two=None):
+    def __init__(self, x, y, height, ter_one=None, ter_two=None, operation=None):
         super().__init__(x, y, height, pickable=False)
         self.pickable = False  # Input terminals cannot be picked up
         self.input_ter_one = ter_one  # Color of thefirst terminal
         self.input_ter_two = ter_two  # Color of the second terminal
-        self.operation = self.generate_operation()  # Random operation for the input terminal
+        self.activated = False  # Whether the input terminal has been activated
+        self.operation = operation  # Operation to be performed ["+", "-", "*", "/"]
 
 
     def __str__(self):
@@ -30,15 +31,3 @@ class InputTer(Entity):
         if self.operation:
             icon = "Input Terminal " + self.operation
         return icon
-
-
-    def generate_operation(self):
-        """
-        Generates a random operation for the input terminal to store and return inmediately.
-
-        Returns:
-            int: Random operation for the input terminal.
-        """
-        operation = random.choice(["+", "-", "*", "/"])
-        self.operation = operation
-        return operation
