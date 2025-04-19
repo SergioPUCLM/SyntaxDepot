@@ -1,3 +1,0 @@
-while (vision != output_terminal) {
-    move();
-}

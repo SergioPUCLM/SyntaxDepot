@@ -47,6 +47,7 @@ class Level:
         self.width = width
         self.height = height
         self.remove_callback = remove_callback  # Callback function to remove entities from the level
+        self.success = True  # Success flag for the level
 
         if os.path.exists(background_image):
             try:
@@ -197,7 +198,9 @@ class Level:
                 case _:
                     logging.error(f"Invalid entity height: {height}")
                     success = False
-            self.remove_callback(entity)
+            # If the entity is not a robot
+            if entity.__class__.__name__.lower() not in ["red", "green", "blue"]:
+                self.remove_callback(entity)  # Do not remove bots
         return success
 
 
@@ -355,6 +358,7 @@ class Level:
                 f"Entity {entity} cannot advance.\nThe tile is occupied, out of bounds or it cannot cross it.",
                 ErrorLevel.WARNING
             )
+            self.success = False  # Mark level as failed
             logging.error(f"Entity {entity} cannot move.")
         return success
 
@@ -458,6 +462,7 @@ class Level:
                 f"Entity {entity} cannot see an invalid tile (out of bounds).",
                 ErrorLevel.WARNING
             )
+            self.success = False  # Mark level as failed
             logging.error(f"Entity {entity} cannot see.")
         else:
             target_tile = self.tiles[new_y][new_x]
@@ -516,6 +521,7 @@ class Level:
                                     f"Entity {entity} can only carry small crates.\nBig crates must be carried by Red",
                                     ErrorLevel.WARNING
                                 )
+                                self.success = False  # Mark level as failed
                                 logging.error(f"Entity {entity} cannot pick up crate {target_entity} (Too big).")
                                 success = False
                 else:
@@ -524,6 +530,7 @@ class Level:
                         f"Entity {entity} can only pick up crates.",
                         ErrorLevel.WARNING
                     )
+                    self.success = False  # Mark level as failed
                     logging.error(f"No entity to pick up at ({new_x}, {new_y}).")
                     success = False
         else:
@@ -533,6 +540,7 @@ class Level:
                 f"Robot {entity} cannot execute pickup() actions.\nOnly Red and Green can.",
                 ErrorLevel.WARNING
             )
+            self.success = False  # Mark level as failed
             success = False
         return success
                 
@@ -556,6 +564,7 @@ class Level:
                     f"Entity {entity} cannot drop it's crate on an invalid tile (out of bounds).",
                     ErrorLevel.WARNING
                 )
+                self.success = False  # Mark level as failed
                 logging.error(f"Entity {entity} cannot drop.")
                 success = False
             else:
@@ -573,6 +582,7 @@ class Level:
                             f"Entity {entity} is not holding a crate.",
                             ErrorLevel.WARNING
                         )
+                        self.success = False  # Mark level as failed
                         logging.error(f"Entity {entity} has nothing to drop.")
                         success = False
                 else:
@@ -581,6 +591,7 @@ class Level:
                         f"Entity {entity} cannot drop it's crate on an occupied tile.",
                         ErrorLevel.WARNING
                     )
+                    self.success = False  # Mark level as failed
                     logging.error(f"Cannot drop entity at ({new_x}, {new_y}). Tile is already occupied.")
                     success = False
         else:
@@ -589,6 +600,7 @@ class Level:
                 f"Robot {entity} cannot hold crates.\nOnly Red and Green can.",
                 ErrorLevel.WARNING
             )
+            self.success = False  # Mark level as failed
             logging.error(f"Entity {entity} cannot drop.")
             success = False
         return success    
@@ -613,6 +625,7 @@ class Level:
                     f"Robot {entity} can only read from output terminals",
                     ErrorLevel.WARNING
                 )
+                self.success = False  # Mark level as failed
                 logging.error(f"Entity {entity} cannot read.")
             else:
                 target_entity = self.tiles[new_y][new_x].entities['ground']
@@ -625,6 +638,7 @@ class Level:
                         f"There is nothing to read in front of {entity}.\nGot: {target_entity_class}\nExpected: outputter",
                         ErrorLevel.WARNING
                     )
+                    self.success = False  # Mark level as failed
                     logging.error(f"No entity to read at ({new_x}, {new_y}).")
         else:
             error_handler.push_error(
@@ -632,6 +646,7 @@ class Level:
                 f"Robot {entity} cannot execute read() actions.",
                 ErrorLevel.WARNING
             )
+            self.success = False  # Mark level as failed
             logging.error(f"Entity {entity} cannot read.")
         return data
 
@@ -656,6 +671,7 @@ class Level:
                     f"Robot {entity} can only write to input terminals",
                     ErrorLevel.WARNING
                 )
+                self.success = False  # Mark level as failed
                 logging.error(f"No entity to write to at ({new_x}, {new_y}).")
                 success = False
             else:
@@ -697,6 +713,7 @@ class Level:
                                 f"Robot {entity} wrote the wrong data to a terminal.\nGot: {data}\nExpected: {result}",
                                 ErrorLevel.WARNING
                             )
+                            self.success = False  # Mark level as failed
                             logging.error(f"Entity {entity} failed to write {data} to {target_entity}.")
                             success = False
                 else:
@@ -705,6 +722,7 @@ class Level:
                         f"Robot {entity} needs an Input terminal in front to write.",
                         ErrorLevel.WARNING
                     )
+                    self.success = False  # Mark level as failed
                     logging.error(f"Entity {entity} cannot write to {target_entity}.")
                     success = False
         else:
@@ -713,6 +731,7 @@ class Level:
                 f"Robot {entity} cannot execute write() actions.",
                 ErrorLevel.WARNING
             )
+            self.success = False  # Mark level as failed
             logging.error(f"Entity {entity} cannot write.")
             success = False
         return success
@@ -738,5 +757,6 @@ class Level:
                 f"Robot {entity} cannot wait.",
                 ErrorLevel.WARNING
             )
+            self.success = False  # Mark level as failed
             success = False
         return success

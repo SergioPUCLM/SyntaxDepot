@@ -178,3 +178,7 @@ green.txt
 # Parser files
 parsetab.py
 parser.out
+
+# Config files
+data/options.json
+data/player/*.json

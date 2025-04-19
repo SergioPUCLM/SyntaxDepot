@@ -1,0 +1,45 @@
+{
+    "size": [11, 11],
+    "matrix": [
+      [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+      [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
+      [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
+      [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
+      [2, 0, 0, 0, 2, 2, 2, 0, 0, 0, 2],
+      [2, 1, 1, 1, 2, 2, 2, 1, 1, 1, 2],
+      [2, 0, 0, 0, 2, 2, 2, 0, 0, 0, 2],
+      [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
+      [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
+      [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
+      [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+    ],
+    "entities": {
+      "tile": [
+        { "type": "CrateGen", "x": 9, "y": 7, "crate_count": 2, "crate_type": "small" },
+        { "type": "CrateGen", "x": 9, "y": 9, "crate_count": 2, "crate_type": "big"},
+        { "type": "CrateDel", "x": 1, "y": 8 },
+        { "type": "ChargePad", "x": 5, "y": 3 },
+        { "type": "ChargePad", "x": 5, "y": 7 },
+        { "type": "Trap", "x": 5, "y": 1 },
+        { "type": "Trap", "x": 5, "y": 9 }
+      ],
+      "ground": [
+        { "type": "Blue", "x": 5, "y": 2, "direction": "N" },
+        { "type": "Red", "x": 5, "y": 8, "direction": "S" },
+        { "type": "InputTer", "x": 1, "y": 2, "ter_one": "white", "ter_two": "green", "operation": "+"},
+        { "type": "OutputTer", "x": 9, "y": 3, "color": "white"},
+        { "type": "OutputTer", "x": 9, "y": 1, "color": "green"},
+        { "type": "Crate", "x": 8, "y": 3, "small": true },
+        { "type": "Crate", "x": 8, "y": 7, "small": false },
+        { "type": "Collectable", "x": 3, "y": 4 },
+        { "type": "Collectable", "x": 7, "y": 4 },
+        { "type": "Collectable", "x": 3, "y": 6 },
+        { "type": "Collectable", "x": 7, "y": 6 }
+      ],
+      "air": [
+        { "type": "Green", "x": 8, "y": 5, "direction": "W" },
+        { "type": "Collectable", "x": 8, "y": 6 }
+      ]
+    }
+  }
+  

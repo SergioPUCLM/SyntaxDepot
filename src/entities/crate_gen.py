@@ -16,6 +16,7 @@ class CrateGen(Entity):
         self.active = False  # Whether the crate generator has a crate on top of it or not
         self.crate_count = crate_count  # Number of crates to spawn on top of the crate generator
         self.crate_type = crate_type  # Type of crate generated (big or small)
+        self.active = False  # Whether in the next tick it will spawn a crate or not
 
 
     def __str__(self):

@@ -12,6 +12,7 @@ from src.render.error_handler import error_handler, ErrorLevel
 from src.render.sound_manager import sound_manager
 
 LEVEL_FOLDER = "data/level/"  # Folder where the levels are stored
+PLAYER_SCRIPTS = "script/"
 TRAP_DELAY_DEFAULT = 2  # Default delay for traps (in ticks)
 
 
@@ -25,6 +26,9 @@ class GameManager:
         self.camera_robot = None  # The robot that the camera is over
         self.trap_delay = TRAP_DELAY_DEFAULT  # Delay for traps
         self.coroutines = {}
+        self.finished_robots = []  # List of finished robots
+        self.success = True  # Whether the level was completed successfully (No errors or warnings happened)
+        self.steps_taken = 0  # Number of steps taken in the level (for leaderboard purposes)
 
         self.entity_list = {  # Store entities for easy updates
             'tile': [],
@@ -117,13 +121,16 @@ class GameManager:
             self.update_entities()
             self.current_level.remove_callback = self.remove_from_list  # Set the callback to remove entities from the list
             self.trap_delay = TRAP_DELAY_DEFAULT  # Reset the trap delay
+            self.finished_robots = []  # Reset the finished robots list
+            self.coroutines = {}  # Reset the coroutines
+            self.success = True  # Reset the success flag
+            self.steps_taken = 0  # Reset the steps taken
         else:
             logging.error(f"Failed to load level: {level_folder}")
 
 
     def start_game(self):
         """Starts the game, enabing robot movement."""
-        print("PLAY PRESSED RAHHH")
         if self.current_level and self.is_running == False:  # Check if a level is loaded and the game is not already running
             self.is_running = True
             self.is_paused = False
@@ -137,7 +144,6 @@ class GameManager:
         """Resets the current level, resetting all entities to their original positions and pausing the game."""
         self.load_level(self.level_folder)
         self.is_running = False  # Stop the game
-        self.coroutines = {}  # Reset the coroutines
 
 
     def pause_game(self):
@@ -193,19 +199,25 @@ class GameManager:
             self.camera_robot = None
 
 
-    def save_script(self, script):
+    def save_script(self, script, player_name):
         """Save the current script to a file."""
-        if self.camera_robot and self.is_running == False:  # Save only if the game is not running
-            file = os.path.join(LEVEL_FOLDER, self.level_folder, f"{self.camera_robot}.txt")
+        message = "Simulation running...\n\nScript editing is disabled."
+        if self.camera_robot and self.is_running == False and script != message:  # Save only if the game is not running
+            # Create scripts folder if it doesn't exist
+            if not os.path.exists(os.path.join(LEVEL_FOLDER, self.level_folder, PLAYER_SCRIPTS)):
+                os.makedirs(os.path.join(LEVEL_FOLDER, self.level_folder, PLAYER_SCRIPTS))
+            file = os.path.join(LEVEL_FOLDER, self.level_folder, PLAYER_SCRIPTS, f"{self.camera_robot}_{player_name}.txt")
             with open(file, "w") as f:
                 f.write(script)
 
     
-    def load_script(self):
+    def load_script(self, player_name):
         """Load a script from a file."""
         script = ""
         if self.camera_robot:
-            file = os.path.join(LEVEL_FOLDER, self.level_folder, f"{self.camera_robot}.txt")
+            if not os.path.exists(os.path.join(LEVEL_FOLDER, self.level_folder, PLAYER_SCRIPTS)):
+                os.makedirs(os.path.join(LEVEL_FOLDER, self.level_folder, PLAYER_SCRIPTS))
+            file = os.path.join(LEVEL_FOLDER, self.level_folder, PLAYER_SCRIPTS, f"{self.camera_robot}_{player_name}.txt")
             if os.path.exists(file):
                 with open(file, "r") as f:
                     script = f.read()
@@ -249,13 +261,14 @@ class GameManager:
                     logging.error(f"Syntax error in {robot.__class__.__name__}'s script: {e}")
                     self.reset_level()
                 except Exception as e:
-                    error_handler.push_error(
-                        "Script Error",
-                        f"Could not load the script for: {robot.__class__.__name__}\nError: {str(e)}",
-                        ErrorLevel.ERROR
-                    )
-                    logging.error(f"Failure to initialize script for {robot.__class__.__name__}: {e}")
-                    self.reset_level()
+                    if robot.script != "":  # Only trigger if the script is not empty
+                        error_handler.push_error(
+                            "Script Error",
+                            f"Could not load the script for: {robot.__class__.__name__}\nError: {str(e)}",
+                            ErrorLevel.ERROR
+                        )
+                        logging.error(f"Failure to initialize script for {robot.__class__.__name__}: {e}")
+                    self.finished_robots.append(robot)  # If the script is empty, mark the robot as finished too
             else:
                 error_handler.push_error(
                     "Script Problem",
@@ -263,14 +276,59 @@ class GameManager:
                     ErrorLevel.WARNING
                 )
                 logging.ERROR(f"Script file for {robot.__class__.__name__.lower()} not found. Make sure you made a script for it and it saved.")
-                
+                self.success = False
+                self.finished_robots.append(robot)
+
+    
+    def check_completion(self):
+        """Checks if the level is completed."""
+        if not self.success or not self.current_level:
+            return False  # If the level is not loaded or there was an error, return False
+
+        objectives_met = True
+        for objective, target in self.current_level.objectives.items():
+            if objective != "collectables":
+                if self.completed_objectives[objective] < target:
+                    objectives_met = False
+                    break
+        
+        present_robots = []
+        for robot in self.entity_list['air']:
+            if robot.__class__.__name__.lower() == "green":
+                present_robots.append(robot)
+        for robot in self.entity_list['ground']: 
+            if robot.__class__.__name__.lower() == "red" or robot.__class__.__name__.lower() == "blue":
+                present_robots.append(robot)
+
+        all_robots_finished = True
+        for robot in present_robots:
+            if robot not in self.finished_robots:
+                all_robots_finished = False
+                break
+
+        return objectives_met and all_robots_finished and self.current_level.success
+
+    
+    def calculate_score(self):
+        """Calculates the score based on the completed objectives."""
+        if not self.success or not self.current_level:
+            return 0
+
+        base_percentage = 0.3
+        picked_collectables = self.completed_objectives["collectables"]
+        total_collectables = self.current_level.objectives["collectables"]
+        if total_collectables > 0:
+            collectable_percentage = 1 + (picked_collectables / total_collectables) * base_percentage
+        else:
+            collectable_percentage = 1
+        return int(self.steps_taken / collectable_percentage)
+
 
     def tick(self):
         """Updates the game state."""
         if self.is_running and not self.is_paused:
             self.frame_count += 1
-            if self.frame_count % 60 == 0:  # Every second
-                logging.debug("PLACE HOLDER: Game tick")
+            if self.frame_count % 1 == 0:  # 60 for Every second
                 occupied_chargepads = 0
                 active_terminals = 0
                 present_collectables = 0
@@ -289,7 +347,14 @@ class GameManager:
                     try:
                         next(coroutine)  # Advance coroutine
                     except StopIteration:
-                        logging.info(f"{robot.__class__.__name__} has finished its script.")
+                        if robot not in self.finished_robots:
+                            self.finished_robots.append(robot)
+                            logging.info(f"{robot.__class__.__name__} has finished its script.")
+                            error_handler.push_error(
+                                "Script Finished",
+                                f"{robot.__class__.__name__} has finished its script.",
+                                ErrorLevel.INFO
+                            )
                     except Exception as e:
                         error_handler.push_error(
                             f"Script Error: {robot.__class__.__name__}",
@@ -297,6 +362,7 @@ class GameManager:
                             ErrorLevel.ERROR
                         )
                         logging.error(f"Error while executing robot script for {robot}: {e}")
+                        self.success = False
 
                 # Step 2: Update tile entities
                 for tile_entity in self.entity_list['tile']:
@@ -328,13 +394,18 @@ class GameManager:
                     if tile_entity.__class__.__name__.lower() == "crategen":
                         # If nothing is above them
                         if self.current_level.tiles[tile_entity.y][tile_entity.x].entities['ground'] is None:
-                            match tile_entity.crate_type:
-                                case "small":
-                                    new_crate = Crate(tile_entity.x, tile_entity.y, tile_entity.height, True)
-                                case "big":
-                                    new_crate = Crate(tile_entity.x, tile_entity.y, tile_entity.height, False)
-                                case _:
-                                    new_crate = None
+                            new_crate = None
+                            if tile_entity.active:  # If the crate generator is active
+                                match tile_entity.crate_type:
+                                    case "small":
+                                        new_crate = Crate(tile_entity.x, tile_entity.y, 1, True)
+                                    case "big":
+                                        new_crate = Crate(tile_entity.x, tile_entity.y, 1, False)
+                                    case _:
+                                        new_crate = None
+                                tile_entity.active = False  # Deactivate the crate generator
+                            else:
+                                tile_entity.active = True  # Activate the crate generator
                             if new_crate and tile_entity.crate_count > 0:
                                 self.current_level.tiles[tile_entity.y][tile_entity.x].entities['ground'] = new_crate
                                 self.entity_list['ground'].append(new_crate)  # Add the crate to the entity list
@@ -346,14 +417,18 @@ class GameManager:
                         entity_above = self.current_level.tiles[tile_entity.y][tile_entity.x].entities['ground']
                         if entity_above:
                             if entity_above.__class__.__name__.lower() == "crate":
-                                # Delete the crate
-                                self.current_level.remove_entity(entity_above)
+                                if tile_entity.active:  # If the crate deletor is active
+                                    # Delete the crate
+                                    self.current_level.remove_entity(entity_above)
 
-                                # Update the completed objectives
-                                if entity_above.small:
-                                    self.completed_objectives["crates_small"] += 1
+                                    # Update the completed objectives
+                                    if entity_above.small:
+                                        self.completed_objectives["crates_small"] += 1
+                                    else:
+                                        self.completed_objectives["crates_large"] += 1
+                                    tile_entity.active = False  # Deactivate the crate deletor
                                 else:
-                                    self.completed_objectives["crates_large"] += 1
+                                    tile_entity.active = True  # Activate the crate deletor
 
                 # Step 3: Update ground entities
                 for ground_entity in self.entity_list['ground']:
@@ -376,5 +451,8 @@ class GameManager:
                 self.completed_objectives["terminals"] = active_terminals
                 collectables_picked = self.current_level.objectives["collectables"] - present_collectables
                 self.completed_objectives["collectables"] = collectables_picked
+
+                # Step 6: Increase steps taken
+                self.steps_taken += 1
         else:
             self.frame_count = 0

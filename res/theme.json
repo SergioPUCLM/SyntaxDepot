@@ -30,11 +30,12 @@
             "unfilled_bar": "#CCCCCC"
         }
     },
+
     "good_button": {
         "colours": {
             "normal_bg": "#186CA4FF",
-            "hovered_bg": "#2E6DA4",
-            "disabled_bg": "#6C9FB8",
+            "hovered_bg": "#3F719DFF",
+            "disabled_bg": "#2D5467FF",
             "normal_text": "#FFFFFF",
             "hovered_text": "#FFFFFF",
             "disabled_text": "#000000FF",
@@ -53,11 +54,12 @@
             "border_width": "3"
         }
     },
+
     "bad_button": {
         "colours": {
             "normal_bg": "#8B0A0A",
             "hovered_bg": "#660000",
-            "disabled_bg": "#C51077",
+            "disabled_bg": "#451414FF",
             "normal_text": "#FFFFFF",
             "hovered_text": "#FFFFFF",
             "disabled_text": "#AAAAAA",
@@ -76,6 +78,7 @@
             "border_width": "3"
         }
     },
+
     "level_button": {
         "colours": {
             "normal_bg": "#F1DE2DFF",
@@ -99,6 +102,7 @@
             "border_width": "3"
         }
     },
+
     "title": {
         "colours": {
             "normal_text": "#FFFFFF",
@@ -110,6 +114,18 @@
             "bold": true
         }
     },
+
+    "title_small": {
+        "colours": {
+            "normal_text": "#FFFFFF"
+        },
+        "font": {
+            "name": "PixelOperator8",
+            "size": 20,
+            "bold": true
+        }
+    },
+
     "subtitle": {
         "colours": {
             "normal_text": "#E4E4E4FF"
@@ -120,6 +136,7 @@
             "italic": true
         }
     },
+
     "label": {
         "colours": {
             "normal_text": "#E4E4E4FF"
@@ -129,6 +146,7 @@
             "size": 12
         }
     },
+
     "leaderboard": {
         "colours": {
             "normal_text": "#FFFFFFFF",
@@ -145,9 +163,37 @@
             "border_width": "3"
         }
     },
+    "leaderboard.vertical_scroll_bar": {
+        "colours": {
+            "normal_bg": "#FFFFFF00",
+            "hovered_bg": "#FFFFFF30",
+            "disabled_bg": "#FFFFFF00"
+        },
+        "misc": {
+            "border_width": "0",
+            "shape": "rounded_rectangle",
+            "shape_corner_radius": "10",
+            "shadow_width": "0",
+            "enable_arrow_buttons": "0",
+            "width": 15
+        }
+    },
+    "leaderboard.vertical_scroll_bar.#sliding_button": {
+        "colours": {
+            "normal_bg": "#FFFFFFAA",
+            "hovered_bg": "#FFFFFFFF",
+            "disabled_bg": "#FFFFFF00"
+        },
+        "misc": {
+            "border_width": "0",
+            "shape": "rounded_rectangle",
+            "shape_corner_radius": "10"
+        }
+    },
+
     "sidebar_panel": {
         "colours": {
-            "normal_bg": "#FFFFFFFF",
+            "normal_border": "#FFFFFFFF",
             "dark_bg": "#FFFFFF00"
         },
         "misc": {
@@ -156,6 +202,7 @@
             "border_width": "3"
         }
     },
+
     "code_editor": {
         "colours": {
             "normal_border": "#FFFFFFFF",
@@ -312,6 +359,69 @@
             "shape": "rounded_rectangle",
             "shape_corner_radius": "10",
             "border_width": "1"
+        }
+    },
+
+    "score_popup": {
+        "colours": {
+            "normal_border": "#FFFFFFFF",
+            "dark_bg": "#000000FF"
+        },
+        "misc": {
+            "shape": "rounded_rectangle",
+            "shape_corner_radius": "10",
+            "border_width": "5"
+        }
+    },
+
+    "name_input": {
+        "colours": {
+            "normal_border": "#FFFFFFFF",
+            "dark_bg": "#000000FF",
+            "normal_text": "#FFFFFFFF"
+        },
+        "font": {
+            "name": "PixelOperator8",
+            "size": 12
+        },
+        "misc": {
+            "shape": "rounded_rectangle",
+            "shape_corner_radius": "10",
+            "border_width": "3"
+        }
+    },
+
+    "mute_button": {
+        "colours": {
+            "normal_bg": "#808080FF",
+            "hovered_bg": "#707070",
+            "disabled_bg": "#C0C0C0",
+            "normal_text": "#FFFFFF",
+            "hovered_text": "#FFFFFF",
+            "disabled_text": "#333333",
+            "active_border": "#FFFFFF",
+            "normal_border": "#FFFFFF",
+            "disabled_border": "#666666"
+        },
+        "font": {
+            "name": "PixelOperator8",
+            "size": 14,
+            "bold": true
+        },
+        "misc": {
+            "border_width": "3"
+        }
+    },
+
+    "level_panel": {
+        "colours": {
+            "normal_border": "#FFFFFFFF",
+            "dark_bg": "#000000FF"
+        },
+        "misc": {
+            "shape": "rounded_rectangle",
+            "shape_corner_radius": "10",
+            "border_width": "5"
         }
     }
 }

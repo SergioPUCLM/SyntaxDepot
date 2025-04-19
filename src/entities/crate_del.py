@@ -13,6 +13,7 @@ class CrateDel(Entity):
     def __init__(self, x, y, height):
         super().__init__(x, y, height, pickable=False)
         self.pickable = False  # Crate delivery points cannot be picked up
+        self.active = False  # Whether it will delete a crate or not in the next tick
         
 
     def __str__(self):

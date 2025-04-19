@@ -3,6 +3,7 @@
 import sys
 import os
 import logging
+import json
 import pygame
 import pygame_gui
 from pygame_gui.core.text.text_box_layout_row import TextBoxLayoutRow
@@ -23,6 +24,8 @@ from src.render.sound_manager import sound_manager
 SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 600
 GAME_NAME = "Syntax Depot"
+DATA_FILE = "data/options.json"
+SPRITES_FOLDER = "res/sprites"
 
 FONTS = ["res/fonts/PixelOperator8.ttf", "res/fonts/PixelOperatorMono8.ttf"]
 
@@ -78,11 +81,52 @@ def main():
 
     # TODO: Load the sounds into the sound manager
 
+    # Check if options.json exists and if it has the correct data:
+    # Defaults:
+    # last_player = "Anonymous"
+    # mute = 0
+    if not os.path.exists(DATA_FILE):
+        logging.warning("Options file not found. Creating a new one.")
+        with open(DATA_FILE, "w") as f:
+            f.write('{"last_player": "Anonymous", "mute": 0}')
+    else:
+        with open(DATA_FILE, "r") as f:
+            try:
+                options = json.load(f)
+                if not isinstance(options, dict):
+                    # Recreate the file if it's not a dictionary
+                    logging.warning("Options file is not a dictionary. Recreating the file.")
+                    f.seek(0)
+                    f.truncate()
+                    f.write('{"last_player": "Anonymous", "mute": 0}')
+                if "last_player" not in options or "mute" not in options:
+                    # Recreate the file with default values
+                    logging.warning("Options file is missing keys. Recreating the file.")
+                    f.seek(0)
+                    f.truncate()
+                    f.write('{"last_player": "Anonymous", "mute": 0}')
+            except (json.JSONDecodeError, ValueError) as e:
+                # Recreate the file if there's a JSON error
+                logging.warning(f"Options file is corrupted: {e}. Recreating the file.")
+                with open(DATA_FILE, "w") as f:
+                    f.write('{"last_player": "Anonymous", "mute": 0}')
+            except Exception as e:
+                # Catch all other exceptions
+                logging.error(f"Unexpected error while loading options: {e}. Recreating the file.")
+                with open(DATA_FILE, "w") as f:
+                    f.write('{"last_player": "Anonymous", "mute": 0}')
+
+    # Load the mute setting
+    with open(DATA_FILE, "r") as f:
+        options = json.load(f)
+        if int(sound_manager.muted) != options["mute"]:
+            sound_manager.toggle_mute()
+
     try:
-        icon = pygame.image.load(os.path.join("res", "icon.png"))  # Load the icon
+        icon = pygame.image.load(os.path.join(SPRITES_FOLDER, "icon.png"))  # Load the icon
     except FileNotFoundError:
         logging.error("Icon not found. Using fallback texture")
-        icon = missing_texture_pygame(size_x=16, size_y=16)
+        icon = missing_texture_pygame(size_x=32, size_y=32)
 
     pygame.display.set_icon(icon)  # Set the icon
 
@@ -157,6 +201,7 @@ def main():
 
         screen.fill((0, 0, 0))  # Black background
         scenes[current_scene].render()
+        scenes[current_scene].update(time_delta)
         if scenes["game"]:
             scenes["game"].game_manager.tick()  # Update the game state
         manager.draw_ui(screen)

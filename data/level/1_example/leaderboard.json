@@ -1,0 +1,30 @@
+[
+    {
+        "name": "Anonymous",
+        "score": 64,
+        "steps_taken": 76,
+        "collectables": 60,
+        "timestamp": 1745011204
+    },
+    {
+        "name": "Sergio",
+        "score": 64,
+        "steps_taken": 76,
+        "collectables": 60,
+        "timestamp": 1745011347
+    },
+    {
+        "name": "Anonymous",
+        "score": 68,
+        "steps_taken": 89,
+        "collectables": 100,
+        "timestamp": 1745004116
+    },
+    {
+        "name": "Anonymous",
+        "score": 68,
+        "steps_taken": 89,
+        "collectables": 100,
+        "timestamp": 1745009079
+    }
+]
