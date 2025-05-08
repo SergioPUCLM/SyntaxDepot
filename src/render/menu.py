@@ -95,7 +95,7 @@ class MainMenu:
             relative_rect=pygame.Rect((width - 50, height - 50), (40, 40)),
             text="",
             manager=self.manager,
-            object_id="mute_button"
+            object_id="neutral_button"
         )
         
         # Set initial icon

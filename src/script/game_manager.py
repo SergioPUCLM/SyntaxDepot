@@ -29,6 +29,7 @@ class GameManager:
         self.finished_robots = []  # List of finished robots
         self.success = True  # Whether the level was completed successfully (No errors or warnings happened)
         self.steps_taken = 0  # Number of steps taken in the level (for leaderboard purposes)
+        self.completed = False  # Whether the level was completed
 
         self.entity_list = {  # Store entities for easy updates
             'tile': [],
@@ -125,17 +126,18 @@ class GameManager:
             self.coroutines = {}  # Reset the coroutines
             self.success = True  # Reset the success flag
             self.steps_taken = 0  # Reset the steps taken
+            self.completed = False  # Reset the completed flag
         else:
             logging.error(f"Failed to load level: {level_folder}")
 
 
-    def start_game(self):
+    def start_game(self, player_name):
         """Starts the game, enabing robot movement."""
         if self.current_level and self.is_running == False:  # Check if a level is loaded and the game is not already running
             self.is_running = True
             self.is_paused = False
             self.frame_count = 0
-            self.compile_scripts()
+            self.compile_scripts(player_name)
         else:
             logging.error("Cannot start game without a level loaded")
 
@@ -206,7 +208,7 @@ class GameManager:
             # Create scripts folder if it doesn't exist
             if not os.path.exists(os.path.join(LEVEL_FOLDER, self.level_folder, PLAYER_SCRIPTS)):
                 os.makedirs(os.path.join(LEVEL_FOLDER, self.level_folder, PLAYER_SCRIPTS))
-            file = os.path.join(LEVEL_FOLDER, self.level_folder, PLAYER_SCRIPTS, f"{self.camera_robot}_{player_name}.txt")
+            file = os.path.join(LEVEL_FOLDER, self.level_folder, PLAYER_SCRIPTS, f"{self.camera_robot}_{player_name}.sds")
             with open(file, "w") as f:
                 f.write(script)
 
@@ -217,7 +219,7 @@ class GameManager:
         if self.camera_robot:
             if not os.path.exists(os.path.join(LEVEL_FOLDER, self.level_folder, PLAYER_SCRIPTS)):
                 os.makedirs(os.path.join(LEVEL_FOLDER, self.level_folder, PLAYER_SCRIPTS))
-            file = os.path.join(LEVEL_FOLDER, self.level_folder, PLAYER_SCRIPTS, f"{self.camera_robot}_{player_name}.txt")
+            file = os.path.join(LEVEL_FOLDER, self.level_folder, PLAYER_SCRIPTS, f"{self.camera_robot}_{player_name}.sds")
             if os.path.exists(file):
                 with open(file, "r") as f:
                     script = f.read()
@@ -228,7 +230,7 @@ class GameManager:
             return ""
 
 
-    def compile_scripts(self):
+    def compile_scripts(self, player_name):
         present_robots = []
         for robot in self.entity_list['air']:
             if robot.__class__.__name__.lower() == "green":
@@ -238,7 +240,9 @@ class GameManager:
                 present_robots.append(robot)
         
         for robot in present_robots:
-            file = os.path.join(LEVEL_FOLDER, self.level_folder, f"{robot.__class__.__name__.lower()}.txt")
+            if not os.path.exists(os.path.join(LEVEL_FOLDER, self.level_folder, PLAYER_SCRIPTS)):
+                os.makedirs(os.path.join(LEVEL_FOLDER, self.level_folder, PLAYER_SCRIPTS))
+            file = os.path.join(LEVEL_FOLDER, self.level_folder, PLAYER_SCRIPTS, f"{robot.__class__.__name__.lower()}_{player_name}.sds")
             if os.path.exists(file):
                 with open(file, "r") as f:
                     script = f.read()
@@ -272,18 +276,18 @@ class GameManager:
             else:
                 error_handler.push_error(
                     "Script Problem",
-                    f"{robot.__class__.__name__.lower()} does not have a script set\nMake sure you made a script for it and it saved.",
+                    f"{robot.__class__.__name__.lower()} does not have a script set\nMake sure you made a script and it saved.",
                     ErrorLevel.WARNING
                 )
-                logging.ERROR(f"Script file for {robot.__class__.__name__.lower()} not found. Make sure you made a script for it and it saved.")
+                logging.error(f"Script file for {robot.__class__.__name__.lower()}_{player_name}.sds not found. Make sure you made a script for it and it saved.")
                 self.success = False
                 self.finished_robots.append(robot)
 
     
     def check_completion(self):
         """Checks if the level is completed."""
-        if not self.success or not self.current_level:
-            return False  # If the level is not loaded or there was an error, return False
+        if not self.current_level:
+            return False  # If the level is not loaded
 
         objectives_met = True
         for objective, target in self.current_level.objectives.items():
@@ -306,7 +310,17 @@ class GameManager:
                 all_robots_finished = False
                 break
 
-        return objectives_met and all_robots_finished and self.current_level.success
+        # If all the robots are finished BUT the level is not completed, reset the level
+        if all_robots_finished and not objectives_met:
+            logging.error("All robots finished, but objectives were not completed. The level was restarted.")
+            error_handler.push_error(
+                "Execution Error",
+                f"All robots finished, but objectives not met. Resetting level.",
+                ErrorLevel.ERROR
+            )
+            self.reset_level()
+
+        return objectives_met and all_robots_finished and self.current_level.success and self.success
 
     
     def calculate_score(self):
@@ -328,7 +342,7 @@ class GameManager:
         """Updates the game state."""
         if self.is_running and not self.is_paused:
             self.frame_count += 1
-            if self.frame_count % 1 == 0:  # 60 for Every second
+            if self.frame_count % 30 == 0:  # 60 for Every second
                 occupied_chargepads = 0
                 active_terminals = 0
                 present_collectables = 0
@@ -454,5 +468,9 @@ class GameManager:
 
                 # Step 6: Increase steps taken
                 self.steps_taken += 1
+
+                # Step 7: Check if all robots finished execution and completion
+                self.completed = self.check_completion()
+
         else:
             self.frame_count = 0

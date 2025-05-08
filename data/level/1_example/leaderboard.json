@@ -14,6 +14,13 @@
         "timestamp": 1745011347
     },
     {
+        "name": "Sergio",
+        "score": 66,
+        "steps_taken": 79,
+        "collectables": 60,
+        "timestamp": 1745069693
+    },
+    {
         "name": "Anonymous",
         "score": 68,
         "steps_taken": 89,
@@ -26,5 +33,26 @@
         "steps_taken": 89,
         "collectables": 100,
         "timestamp": 1745009079
+    },
+    {
+        "name": "Sergio",
+        "score": 68,
+        "steps_taken": 81,
+        "collectables": 60,
+        "timestamp": 1745414756
+    },
+    {
+        "name": "Sergio",
+        "score": 68,
+        "steps_taken": 81,
+        "collectables": 60,
+        "timestamp": 1745515005
+    },
+    {
+        "name": "Sergio",
+        "score": 68,
+        "steps_taken": 81,
+        "collectables": 60,
+        "timestamp": 1746433958
     }
 ]

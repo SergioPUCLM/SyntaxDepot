@@ -1,0 +1,37 @@
+func move_x(x){
+ while (x > 0){
+  move();
+  x = x - 1;
+ }
+}
+
+func turn_arround(){
+ turn_right();
+ turn_right();
+}
+
+turn_left();
+move_x(3);
+turn_left();
+pickup();
+turn_left();
+move_x(6);
+drop();
+turn_arround();
+move_x(7);
+turn_right();
+pickup();
+turn_right();
+move_x(7);
+drop();
+turn_arround();
+move_x(7);
+turn_right();
+pickup();
+turn_right();
+move_x(7);
+drop();
+turn_arround();
+move_x(3);
+turn_left();
+move();

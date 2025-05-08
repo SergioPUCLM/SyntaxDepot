@@ -4,12 +4,15 @@ import logging
 import os
 import json
 import time
+from src.render.missing_image import missing_texture_pygame
 from src.render.render_sprite import load_sprite
 from src.render.error_handler import error_handler, ErrorLevel
 from src.render.sound_manager import sound_manager
 
 PLAYER_FOLDER = "data/player"
 OPTIONS_FILE = "data/options.json"
+SPRITE_FOLDER = "res/sprites"
+HELP_FILE = "data/language_help.html"
 
 class GameScreen:
     def __init__(self, screen, manager, change_scene, game_manager, level_name, level_folder):
@@ -24,6 +27,20 @@ class GameScreen:
         self.last_score = 0
         self.score_overlay_visible = False
         self.player_name = self.get_player_name()
+        self.language_help_icon_surface = None
+        self.help_available = True
+        self.showing_help = False
+        try:
+            self.language_help_icon_surface = pygame.image.load(os.path.join(SPRITE_FOLDER, "lang_help.png")).convert_alpha()
+        except FileNotFoundError:
+            logging.error("Icon not found. Using fallback texture")
+            self.language_help_icon_surface = missing_texture_pygame(size_x=16, size_y=16)
+
+        try:
+            self.instructor_image_surface = pygame.image.load(os.path.join(SPRITE_FOLDER, "instructor.png")).convert_alpha()
+        except:
+            logging.error("Instructor image not found. Using fallback texture")
+            self.instructor_image_surface = missing_texture_pygame(size_x=128, size_y=128)
 
         self.game_manager.load_level(level_name)
 
@@ -34,16 +51,21 @@ class GameScreen:
 
         self.tile_size = self.game_manager.current_level.tile_size
         self.create_ui()
+        self.display_instructions()  # Show instructions on first load
 
 
     def create_ui(self):
         """Creates the UI elements for the game screen."""
         width, height = self.screen.get_size()
         sidebar_width = int(width * 0.35)
-        popup_width = 500
-        popup_height = 300
+        popup_width = min(500, width - 100)
+        popup_height = min(300, height - 100)
+        panel_width = min(650, width - 100)
+        panel_height = min(350, height - 100)
+        lang_panel_width = min(800, width - 100)
+        lang_panel_height = min(600, height - 100)
 
-        # UI Panel (Left Side Menu)
+        # ============= UI Panel (Left Side Menu) =============
         self.ui_panel = pygame_gui.elements.UIPanel(
             relative_rect=pygame.Rect((0, 0), (sidebar_width, height)),
             manager=self.manager,
@@ -77,9 +99,9 @@ class GameScreen:
         )
         self.update_code_input()
 
-        # Buttons
+        # ============= Buttons =============
         self.play_button = pygame_gui.elements.UIButton(
-            relative_rect=pygame.Rect((10, self.code_input.get_relative_rect().height + 225), (sidebar_width / 2 - 40, 40)),
+            relative_rect=pygame.Rect((10, self.code_input.get_relative_rect().height + 225), (sidebar_width / 3 - 17, 40)),
             text="Play",
             manager=self.manager,
             container=self.ui_panel,
@@ -87,22 +109,45 @@ class GameScreen:
         )
 
         self.reset_button = pygame_gui.elements.UIButton(
-            relative_rect=pygame.Rect((self.play_button.get_relative_rect().width + 50, self.code_input.get_relative_rect().height + 225), (sidebar_width / 2 - 40, 40)),
+            relative_rect=pygame.Rect((self.play_button.get_relative_rect().width + 16.5, self.code_input.get_relative_rect().height + 225), (sidebar_width / 3 - 17, 40)),
             text="Reset",
             manager=self.manager,
             container=self.ui_panel,
             object_id="bad_button"
         )
 
+        self.instructions_button = pygame_gui.elements.UIButton(
+            relative_rect=pygame.Rect((self.play_button.get_relative_rect().width + self.reset_button.get_relative_rect().width + 22.5, self.code_input.get_relative_rect().height + 225), (sidebar_width / 3 - 17, 40)),
+            text="Help",
+            manager=self.manager,
+            container=self.ui_panel,
+            object_id="neutral_button"
+        )
+
         self.exit_button = pygame_gui.elements.UIButton(
-            relative_rect=pygame.Rect((10, self.code_input.get_relative_rect().height + 275), (sidebar_width - 40, 50)),
+            relative_rect=pygame.Rect((10, self.code_input.get_relative_rect().height + 275), (sidebar_width - 90, 40)),
             text="Exit",
             manager=self.manager,
             container=self.ui_panel,
             object_id="bad_button"
         )
 
-        # Popup panel
+        self.language_help_button = pygame_gui.elements.UIButton(
+            relative_rect=pygame.Rect((self.exit_button.get_relative_rect().width + 20, self.code_input.get_relative_rect().height + 275), (40, 40)),
+            text="",
+            manager=self.manager,
+            container=self.ui_panel,
+            object_id="neutral_button"
+        )
+        icon_size = (int(self.language_help_button.rect.width * 0.8), int(self.language_help_button.rect.height * 0.8))
+        scaled_icon = pygame.transform.scale(self.language_help_icon_surface, icon_size)
+        self.language_help_button.normal_image = scaled_icon
+        self.language_help_button.hovered_image = scaled_icon
+        self.language_help_button.selected_image = scaled_icon
+        self.language_help_button.disabled_image = scaled_icon
+        self.language_help_button.rebuild()  # Rebuild the button to apply the new image
+
+        # ============= Popup panel =============
         self.score_popup = pygame_gui.elements.UIPanel(
             relative_rect=pygame.Rect(
                 (width//2 - popup_width//2, height//2 - popup_height//2),
@@ -169,6 +214,99 @@ class GameScreen:
             object_id="good_button"
         )
 
+        # ============= Level help panel =============
+        self.dialogue_panel = pygame_gui.elements.UIPanel(
+            relative_rect=pygame.Rect(
+                (width//2 - panel_width//2, height//2 - panel_height//2),
+                (panel_width, panel_height)
+            ),
+            manager=self.manager,
+            visible=False,
+            object_id="dialogue_panel",
+            starting_height=9999
+        )
+        
+        # Instructor image area (left side)
+        self.instructor_image = pygame_gui.elements.UIImage(
+            relative_rect=pygame.Rect(20, 20, 128, 128),
+            image_surface=self.instructor_image_surface,
+            manager=self.manager,
+            container=self.dialogue_panel,
+            visible=False
+        )
+        
+        # Dialogue text area
+        self.dialogue_text = pygame_gui.elements.UITextBox(
+            relative_rect=pygame.Rect(168, 20, panel_width - 188, panel_height - 80),
+            html_text="",
+            manager=self.manager,
+            container=self.dialogue_panel,
+            object_id="dialogue_panel",
+            visible=False
+        )
+
+        # Instructor name label
+        self.instructor_name = pygame_gui.elements.UILabel(
+            relative_rect=pygame.Rect(20, 148, 128, 40),
+            text="A.R.I.A.",
+            manager=self.manager,
+            container=self.dialogue_panel,
+            object_id="label",
+            visible=False
+        )
+        
+        # Next button
+        self.next_button = pygame_gui.elements.UIButton(
+            relative_rect=pygame.Rect(panel_width - 230, panel_height - 50, 100, 30),
+            text="Next",
+            manager=self.manager,
+            container=self.dialogue_panel,
+            object_id="good_button",
+            visible=False
+        )
+        
+        # Skip button
+        self.skip_button = pygame_gui.elements.UIButton(
+            relative_rect=pygame.Rect(panel_width - 120, panel_height - 50, 100, 30),
+            text="Skip",
+            manager=self.manager,
+            container=self.dialogue_panel,
+            object_id="bad_button",
+            visible=False
+        )
+
+        # ============ Language help panel =============
+        self.language_help_panel = pygame_gui.elements.UIPanel(
+            relative_rect=pygame.Rect(
+                (width//2 - lang_panel_width//2, height//2 - lang_panel_height//2),
+                (lang_panel_width, lang_panel_height)
+            ),
+            manager=self.manager,
+            visible=False,
+            object_id="help_panel",
+            starting_height=9999
+        )
+        
+        # Text box for HTML content
+        self.language_help_text = pygame_gui.elements.UITextBox(
+            relative_rect=pygame.Rect(20, 20, lang_panel_width - 55, lang_panel_height - 80),
+            html_text="Loading help...",
+            manager=self.manager,
+            container=self.language_help_panel,
+            object_id="help_textbox",
+            visible=False
+        )
+        
+        # Close button
+        self.close_help_button = pygame_gui.elements.UIButton(
+            relative_rect=pygame.Rect(lang_panel_width - 135, lang_panel_height - 52, 100, 30),
+            text="Close",
+            manager=self.manager,
+            container=self.language_help_panel,
+            object_id="neutral_button",
+            visible=False
+        )
+
         self.calculate_viewport()  # Calculate the viewport size (Radious of tiles rendered)
 
 
@@ -225,7 +363,7 @@ class GameScreen:
                         self.game_manager.save_script(self.code_input.get_text(), self.player_name)
                         self.code_input.disable()
                         self.code_input.set_text("Simulation running...\n\nScript editing is disabled.")
-                        self.game_manager.start_game()
+                        self.game_manager.start_game(self.player_name)
 
                     case self.reset_button:  # Reset button
                         error_handler.dismiss_all()
@@ -234,11 +372,37 @@ class GameScreen:
                         self.game_manager.reset_level()
                         self.update_code_input()
 
-                    case self.submit_button if self.submit_button:
+                    case self.submit_button if self.submit_button:  # Submit score button
                         score = self.game_manager.calculate_score()
                         self.save_score_to_leaderboard(score)
                         self.hide_score_popup()
                         self.change_scene("level_select")
+
+                    case self.instructions_button:  # Instructions button
+                        error_handler.dismiss_all()
+                        self.display_instructions()
+
+                    case self.language_help_button:  # Language help button
+                        error_handler.dismiss_all()
+                        self.show_language_help()
+
+                    case self.close_help_button:  # Close button in language help
+                        self.language_help_panel.hide()
+                        self.code_input.enable()
+                        self.play_button.enable()
+                        self.reset_button.enable()
+                        self.instructions_button.enable()
+                        self.language_help_button.enable()
+
+                    case self.next_button:  # Next/Close button in instructions
+                        if self.current_message_index < len(self.explanation_messages.get('messages', [])) - 1:
+                            self.current_message_index += 1
+                            self.show_current_message()
+                        else:
+                            self.hide_instructions()
+
+                    case self.skip_button:  # Skip button in instructions
+                        self.hide_instructions()
 
             case pygame.KEYDOWN:  # Keyboard input
                 if not self.code_input.is_focused and not self.score_overlay_visible:
@@ -256,6 +420,102 @@ class GameScreen:
                                 self.game_manager.move_camera("right")
                         if not self.game_manager.is_running:
                             self.update_code_input()
+
+
+    def show_language_help(self):
+        """Show language reference help in a popup window."""
+        # Load help content from file
+        try:
+            with open(HELP_FILE, 'r') as f:
+                help_content = f.read()
+            self.language_help_text.set_text(help_content)
+        except FileNotFoundError:
+            fallback_text = "The help file \"data/language_help.html\" is missing."
+            self.language_help_text.set_text(fallback_text)
+            logging.warning("Help file not found")
+        
+        # Show the panel
+        self.language_help_panel.show()
+        self.language_help_text.show()
+        self.close_help_button.show()
+        
+        # Disable other UI elements while help is open
+        self.code_input.disable()
+        self.play_button.disable()
+        self.reset_button.disable()
+        self.code_input.disable()
+        self.instructions_button.disable()
+
+
+    def display_instructions(self):
+        """Display level instructions if they exist."""
+        try:
+            explanation_file = os.path.join("data", "level", self.level_name, "dialogue.json")
+            if not os.path.exists(explanation_file):
+                self.help_available = False
+                self.instructions_button.disable()
+                return
+                
+            with open(explanation_file, 'r') as f:
+                self.explanation_messages = json.load(f)
+                
+            # Show the UI elements
+            self.dialogue_panel.show()
+            self.instructor_image.show()
+            self.dialogue_text.show()
+            self.instructor_name.show()
+            self.next_button.show()
+            self.skip_button.show()
+            
+            # Disable other UI
+            self.code_input.disable()
+            self.play_button.disable()
+            self.reset_button.disable()
+            self.showing_help = True
+            
+            # Start with first message
+            self.current_message_index = 0
+            self.show_current_message()
+            
+        except Exception as e:
+            logging.error(f"Error showing instructions: {e}")
+            self.help_available = False
+            self.instructions_button.disable()
+
+
+    def show_current_message(self):
+        """Show the current message in the dialogue sequence."""
+        if not hasattr(self, 'explanation_messages'):
+            return
+            
+        messages = self.explanation_messages.get('messages', [])
+        if not messages or not (0 <= self.current_message_index < len(messages)):
+            return
+            
+        self.dialogue_text.set_text(messages[self.current_message_index])
+        self.dialogue_text.set_active_effect(pygame_gui.TEXT_EFFECT_TYPING_APPEAR)
+        
+        # Update button text
+        if self.current_message_index == len(messages) - 1:
+            self.next_button.set_text("Close")
+        else:
+            self.next_button.set_text("Next")
+
+
+    def hide_instructions(self):
+        """Hide the instruction dialogue."""
+        self.dialogue_panel.hide()
+        self.instructor_image.hide()
+        self.dialogue_text.hide()
+        self.instructor_name.hide()
+        self.next_button.hide()
+        self.skip_button.hide()
+        
+        # Re-enable other UI
+        self.code_input.enable()
+        self.play_button.enable()
+        self.reset_button.enable()
+        self.showing_help = False
                     
 
     def update_code_input(self):
@@ -272,22 +532,39 @@ class GameScreen:
         # Check for level completion
         if (self.game_manager.is_running and 
             not self.game_manager.is_paused and  
-            self.game_manager.check_completion()):
+            self.game_manager.completed):
 
             score = self.game_manager.calculate_score()
             self.show_score_popup(score)
             self.game_manager.is_running = False  # Stop the game
+
+        # Disable buttons based on game state
+        if self.game_manager.is_running or self.showing_help:
+            self.language_help_button.disable()
+            self.play_button.disable()
+            self.instructions_button.disable()
+        elif self.language_help_panel.visible:  # Language help is active
+            self.play_button.disable()
+            self.reset_button.disable()
+            self.instructions_button.disable()
+        else:
+            self.language_help_button.enable()
+            self.play_button.enable()
+            if self.help_available:
+                self.instructions_button.enable()
+            else:
+                self.instructions_button.disable()
         
 
     def render(self):
         """Render the game screen."""
-        self.screen.fill((0, 0, 0))
-        self.update_objectives()
-
         if not self.game_manager.current_level:
             self.change_scene("level_select")
             logging.error("No level loaded, returning to level select")
             return
+
+        self.screen.fill((0, 0, 0))
+        self.update_objectives()
 
         # Get the grid boundaries
         sidebar_width = self.ui_panel.get_relative_rect().width
@@ -601,6 +878,8 @@ class GameScreen:
 
     def resize(self):
         last_script = self.code_input.get_text()  # Preserve the script
+        help_was_shown = self.showing_help
+        current_message_idx = getattr(self, 'current_message_index', 0)
         self.game_manager.save_script(last_script, self.player_name)  # Save the script to a file
         self.manager.clear_and_reset()
         self.calculate_viewport()
@@ -619,12 +898,18 @@ class GameScreen:
         if self.score_overlay_visible and self.last_score is not None:
             self.show_score_popup(self.last_score)
 
+        # Restore help dialog if it was shown
+        if help_was_shown:
+            self.current_message_index = current_message_idx
+            self.display_instructions()
+
 
     def destroy(self):
         logging.debug("Destroying game scene")
         # Save last script before that
-        last_script = self.code_input.get_text()
-        self.game_manager.save_script(last_script, self.player_name)
+        if self.game_manager.current_level:
+            last_script = self.code_input.get_text()
+            self.game_manager.save_script(last_script, self.player_name)
         self.game_manager.is_paused = False
         self.game_manager.is_running = False
         self.manager.clear_and_reset()

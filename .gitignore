@@ -171,9 +171,7 @@ cython_debug/
 .pypirc
 
 # Bot script files
-red.txt
-blue.txt
-green.txt
+*.sds
 
 # Parser files
 parsetab.py

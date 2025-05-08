@@ -466,17 +466,31 @@ class Level:
             logging.error(f"Entity {entity} cannot see.")
         else:
             target_tile = self.tiles[new_y][new_x]
-            target_entity = target_tile.entities['ground']
-            target_entity_class = target_entity.__class__.__name__.lower()
-            if target_entity is not None:  # Check if there is an entity in front of the current entity
-                vision = target_entity_class  # Spit out the class name
-            else:
+            ground_entity = target_tile.entities.get('ground')
+            skip_ground = False
+            if ground_entity:
+                match ground_entity.__class__.__name__.lower():
+                    case "crate":
+                        vision = "crate_small" if ground_entity.small else "crate"
+                    case "crategen":
+                        vision = "crategen_small" if ground_entity.type == "small" else "crategen"
+                    case "collectable":
+                        skip_ground = True  # Ignore collecables to make them invisible
+                    case _:
+                        vision = ground_entity.__class__.__name__.lower()
+
+            if (not ground_entity or skip_ground) and target_tile.entities.get('tile'):
+                tile_entity = target_tile.entities['tile']
+                vision = tile_entity.__class__.__name__.lower()
+
+            if vision is None:
                 if target_tile.is_mid_wall:
                     vision = "mid_wall"
                 elif not target_tile.is_path:
                     vision = "wall"
                 else:
                     vision = "empty"
+
         return vision
 
 

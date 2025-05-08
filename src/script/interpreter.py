@@ -157,8 +157,8 @@ class CoroutineInterpreter:
 
         method = getattr(self, f"_eval_{type(node).__name__}", None)
         if method:
-            gen = method(node)
-            if isinstance(node, (Variable, BinaryOp, Literal)):
+            gen = method(node)  # Call the method to get a generator
+            if isinstance(node, (Variable, BinaryOp, FunctionDef)):
                 result = None
                 try:
                     while True:

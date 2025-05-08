@@ -36,11 +36,17 @@ def load_level(folder):
     has_red = False  # If we added a red robot
     has_blue = False  # If we added a blue robot
     has_green = False  # If we added a green robot
+    has_crates = False  # If we added crates
+    has_big_crate = False  # If we added a big crate
     chargepads = 0  # Number of charge pads
     ground_bots = 0  # Number of ground robots
     required_terminals = []
     existing_terminals = []
-    #FIXME: Fix program crashing whenever a level fails to load
+    expected_heights = {  # Allowed heights for each entity type
+        "tile": [ChargePad, Trap, CrateDel, CrateGen],
+        "ground": [Blue, Red, Collectable, Crate, InputTer, OutputTer],
+        "air": [Green, Collectable]
+    }
 
     if not os.path.exists(structure):  # Fail if the structure file is missing
         logging.error(f"Level structure file not found: {structure}")
@@ -136,11 +142,15 @@ def load_level(folder):
                                     level.objectives["crates_small"] += 1
                                 else:
                                     level.objectives["crates_large"] += 1
+                                    has_big_crate = True
+                                has_crates = True
                             case "CrateGen":
                                 if obj.crate_type == "small":
                                     level.objectives["crates_small"] += obj.crate_count
                                 else:
                                     level.objectives["crates_large"] += obj.crate_count
+                                    has_big_crate = True
+                                has_crates = True
                             case "OutputTer":
                                 required_terminals.append(obj.color)
                             case "InputTer":
@@ -160,7 +170,7 @@ def load_level(folder):
             level.tiles[cam_y][cam_x].entities["camera"] = Camera(cam_x, cam_y, 3)
 
             # Step 6: Additional checks
-            if not has_blue and not has_green and not has_red:
+            if not has_blue and not has_green and not has_red:  # Ensure at least one robot is present
                 logging.error("No robots were added to the level.")
                 return None
 
@@ -172,8 +182,35 @@ def load_level(folder):
                 if color not in existing_terminals:
                     logging.error(f"Missing input terminal for color: {color}")
                     return None
+
+            if has_big_crate and not has_red:  # Ensure red robot is present if big crate is in the level
+                logging.error("Big crate requires a red robot to be moved.")
+                return None
+
+            if not has_blue and required_terminals:  # Ensure blue robot is present if terminals are required
+                logging.error("Blue robot is required to use terminals.")
+                return None
+
+            if not (has_green or has_red) and has_crates:  # Ensure green or red robot is present if crates are in the level
+                logging.error("Crates require a green or red robot to be moved.")
+                return None
+
+            for entity in level.entities:  # Ensure that entities are placed at allowed heights
+                if entity.height == 0:
+                    if type(entity) not in expected_heights["tile"]:
+                        logging.error(f"Entity {entity} is not allowed at height tile level.")
+                        return None
+                elif entity.height == 1:
+                    if type(entity) not in expected_heights["ground"]:
+                        logging.error(f"Entity {entity} is not allowed at height ground level.")
+                        return None
+                elif entity.height == 2:
+                    if type(entity) not in expected_heights["air"]:
+                        logging.error(f"Entity {entity} is not allowed at height air level.")
+                        return None
             
-            return level
+            return None
+            #return level
 
     except json.JSONDecodeError as e:
         logging.error(f"Error decoding JSON: {e}")
@@ -183,4 +220,3 @@ def load_level(folder):
         logging.error(f"Unknown error loading level: {e}")
 
     return None
-

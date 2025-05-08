@@ -83,13 +83,11 @@ class ErrorHandler:
         self.error_queue.append((title, message, level))
         self._process_queue()
 
-
     def _process_queue(self):
         """Process the error queue and display the next error if no current panel is active"""
         if not self.current_panel and self.error_queue and self.ui_manager:
             title, message, level = self.error_queue.pop(0)
             self._show_error(title, message, level)
-
 
     def _show_error(self, title, message, level):
         """

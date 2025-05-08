@@ -1,0 +1,334 @@
+<font pixel_size="18">Syntax Depot General Help</font>
+
+<font pixel_size="14">1. Basic Robot Actions</font>
+In order to interact with the world, the robots have a set of commands that they can use. These are called "actions", and they are the basic building blocks of any script.
+
+The actions are:
+- <font color='#DDFF00FF'>move();</font> Moves the bot forward in the direction it is facing.
+- <font color='#DDFF00FF'>turn_left();</font> Turns the bot 90 degrees to the left.
+- <font color='#DDFF00FF'>turn_right();</font> Turns the bot 90 degrees to the right.
+- <font color='#DDFF00FF'>wait();</font> Pauses the bot for 1 tick.
+- <font color='#DDFF00FF'>pickup();</font> Tries to pickup a crate. 
+    - <font color='#FF0000FF'>Red</font> will pick up crates in front of it.
+    - <font color='#00FF00'>Green</font> will pick up crates underneath it.
+    - <font color='#00B7FFFF'>Blue</font> cannot pick up crates.
+- <font color='#DDFF00FF'>drop();</font> Drops the crate in front of the bot.
+    - <font color='#FF0000FF'>Red</font> will drop crates to the tile in front. 
+    - <font color='#00FF00'>Green</font> will drop crates to tile underneath it. 
+    - <font color='#00B7FFFF'>Blue</font> cannot drop crates (because it cannot hold them).
+- <font color='#DDFF00FF'>read();</font> Reads the value of an output terminal in front of it.
+    - <font color='#FF0000FF'>Red</font> and <font color='#00FF00'>Green</font> cannot read.
+    - <font color='#00B7FFFF'>Blue</font> reads from the terminal in front of it.
+- <font color='#DDFF00FF'>write(x);</font> Writes the x value to an input terminal in front of it.
+    - <font color='#FF0000FF'>Red</font> and <font color='#00FF00'>Green</font> cannot write.
+    - <font color='#00B7FFFF'>Blue</font> writes to the terminal in front of it.
+- <font color='#DDFF00FF'>see();</font> Returns a string (refer to "see" help below) of the tile the robot is seeing.
+    - <font color='#FF0000FF'>Red</font> and <font color='#00B7FFFF'>Blue</font> see the tile in front of them.
+    - <font color='#00FF00'>Green</font> sees the tile underneath it.
+
+See can return the following values:
+- "empty" if the tile has nothing on it.
+- "wall" if the tile is an impassable wall.
+- "mid_wall" if the tile is a mid wall or pit. <font color='#00FF00'>Green</font> can fly over it.
+- "blue" if the tile contains the robot <font color='#00B7FFFF'>Blue</font>.
+- "red" if the tile contains the robot <font color='#FF0000FF'>Red</font>.
+- "green" if the tile contains the robot <font color='#00FF00'>Green</font>.
+- "crate" if the tile contains a large crate.
+- "crate_small" if the tile contains a small crate.
+- "inputer" if the tile contains an input terminal.
+- "outputer" if the tile contains an output terminal.
+- "chargepad" if the tile contains a charge pad.
+- "crategen" if the tile contains a large crate generator.
+- "crategen_small" if the tile contains a small crate generator.
+- "cratedel" if the tile contains a crate delivery point.
+- Drives are not visible by the robots, so see() will ignore them.
+
+The see() function has these priorities:
+- 1. Object at ground level, like terminals or robots
+- 2. Objects at tile level like charge pads or crate generators
+- 3. Level architecture like walls or paths
+
+Example: If <font color='#00FF00'>Green</font> is standing on a mid height wall, see will return "green", instead of "mid_wall".
+Example 2: If a floating drive is on the same tile as <font color='#FF0000FF'>Red</font>, which is standing on a charge pad, see will return "red", instead of "chargepad".
+
+<font pixel_size="14">2. Scripting help</font>
+The scripting language comes with a few simple structures to help you write your scripts.
+
+<font pixel_size="12">2.1. Storing values</font>
+You can store values in variables. A variable is a name that refers to a value. Think of it as a box that can hold a value, where the name is a label on the box.
+
+You can give variables any name you want, as long as they start with a letter and are not a reserved word. A reserved word is simply a word the language already uses for something else, like "see" or "if".
+
+Example:
+<font color='#DDFF00FF'>
+number = 5;
+word = "hello";
+</font>
+
+You can store numbers and words but these last ones need to be encased in double quotes to not be confused with a variable name.
+
+Variables can also be obtained from actions, like see() or read().
+Example:
+<font color='#DDFF00FF'>
+obstacle = see();
+value = read();
+</font>
+
+You can also use variables in write(x) and custom functions (more on functions below).
+
+Example:
+<font color='#DDFF00FF'>
+write(value);
+</font>
+
+<font pixel_size="12">2.2. If statements</font>
+If statements are used to check if a condition is true or false.
+True or false can be identified with numbers, where 0 is false and any other number is true.
+They are complex strucutes that can be used to check something before executing the script.
+
+Example:
+<font color='#DDFF00FF'>
+if (see() == "wall") {
+    turn_left();
+}
+</font>
+
+This example checks if the tile in front of the robot is a wall. If it is, the robot will turn left. Otherwise, the section of code inside the brackets will be ignored.
+You can also use the "else" statement to execute a different section of code if the condition is false.
+
+Example:
+<font color='#DDFF00FF'>
+if (see() == "wall") {
+    turn_left();
+} else {
+    move();
+}
+</font>
+
+On this example, if the condition is true the robot will turn left, but if it is false the robot will move forward.
+
+<font pixel_size="12">2.2.1. Condition types</font>
+If-Else statements can check a variety of things:
+- <font color='#DDFF00FF'>a == b:</font> Returns 1 (true) if a is equal to b. In case of words, it will check if the words are the same.
+- <font color='#DDFF00FF'>a != b:</font> Returns 1 (true) if a is not equal to b. In case of words, it will check if the words are different.
+- <font color='#DDFF00FF'>a < b:</font></b:> Returns 1 (true) if a is less than b. In case of words, it will check if the first word is shorter than the second one.
+- <font color='#DDFF00FF'>a > b:</font> Returns 1 (true) if a is greater than b. In case of words, it will check if the first word is longer than the second one.
+- <font color='#DDFF00FF'>a <= b:</font> Returns 1 (true) if a is less than or equal to b. In case of words, it will check if the first word is shorter or equal to the second one.
+- <font color='#DDFF00FF'>a >= b:</font> Returns 1 (true) if a is greater than or equal to b. In case of words, it will check if the first word is longer or equal to the second one.
+
+<font pixel_size="12">2.2. Arithmetic and maths</font>
+The robots are also capable of doing some basic math. You can use the following operators:
+- <font color='#DDFF00FF'>a + b:</font> Adds a and b.
+- <font color='#DDFF00FF'>a - b:</font> Subtracts b from a.
+- <font color='#DDFF00FF'>a * b:</font> Multiplies a and b.
+- <font color='#DDFF00FF'>a / b:</font> Divides a by b.
+
+These can also be used to create variables:
+
+Example:
+<font color='#DDFF00FF'>
+sum = 5 + 3;
+sub = sum - 2;
+mul = sub * sum;
+div = mul / 2;
+</font>
+
+<font pixel_size="12">2.3. Loops</font>
+Loops are a section of code you want to repeat a number of times. They are very useful for repetitive tasks, like moving forward a number of times or checking the same condition multiple times.
+
+There are two types of loops:
+- <font color='#DDFF00FF'>repeat x {}</font> A repeat loop will repeat the code inside the brackets x times. X on this case can ONLY be a number.
+- <font color='#DDFF00FF'>while (condition) {}</font> A while loop will repeat the code inside the brackets as long as the condition is true. The condition can be any of the conditions described in 2.2.1.
+
+Example:
+<font color='#DDFF00FF'>
+repeat 5 {
+    move();
+}
+</font>
+
+This example will move the robot forward 5 times.
+
+Example 2:
+<font color='#DDFF00FF'>
+while (see() != "wall") {
+    move();
+}
+</font>
+
+This example will move the robot forward as long as the tile in front of it is not a wall. If it is, the robot will stop moving.
+
+Pro Tip:
+You can get a while loop to behave like a repeat loop using variables.
+
+Example:
+<font color='#DDFF00FF'>
+count = 0;
+while (count < 5) {
+    move();
+    count = count + 1;
+}
+</font>
+
+This example will move the robot forward 5 times, but it uses a while loop instead of a repeat loop. The variable "count" is used to keep track of how many times the loop has run. Each time the loop runs, "count" is increased by 1 until it reaches 5.
+
+
+<font pixel_size="12">2.4. comments</font>
+Comments are a way to add notes to your code. They are ignored by the robot and are only there for you to remember what you were doing.
+You can add comments by using the "//" symbol. Everything after the "//" symbol on that line will be ignored by the robot.
+For longer comments you can use the "/*" and "*/" symbols. Everything between these two symbols will be ignored by the robot.
+
+Example:
+// This is a comment
+/* This is a longer comment
+that can span multiple lines */
+
+Pro Tip:
+If you suspect a section of your script is causing problems, instead of deleting it, you can comment it out. This way you can keep the code for later reference, but the robot will ignore it.
+
+<font pixel_size="12">2.5. Functions</font>
+Functions are a way to group code together. They are useful for organizing your code and making it easier to read. You can create your own functions and call them from anywhere in your script.
+You probably noticed that the actions are also functions. You can create your own functions and use them in the same way.
+
+To define a function, you need to type "func" followed by a name, a set of parentheses and a set of brackets. The brackets contain the code that will be executed when the function is called.
+
+Example:
+<font color='#DDFF00FF'>
+func my_function() {
+    move();
+    turn_left();
+}
+</font>
+
+You can then execute the code on the function at any time by calling the function name followed by parentheses.
+
+Example:
+<font color='#DDFF00FF'>
+my_function();
+</font>
+
+Functions can also have "parameters", similar to how write(x) takes a parameter. A parameter is a value that is passed to the function when it is called. You can use parameters to make your functions more flexible and reusable.
+
+Example:
+<font color='#DDFF00FF'>
+func my_function(x) {
+    move();
+    turn_left();
+    write(x);
+}
+</font>
+
+You can then call the function and pass a value to it.
+
+Example:
+<font color='#DDFF00FF'>
+my_function(5);
+</font>
+
+IMPORTANT: Variables defined inside functions or other complex structures like loops are only accesible inside the structure. This means that if you define a variable inside a function, it will not be available outside of that function.
+
+Example:
+<font color='#DDFF00FF'>
+func my_function() {
+    x = 5;
+}
+
+write(x); // This will not work, because x is not defined outside of the function.
+</font>
+
+You can take advantage of this to create "private" variables that are only accessible inside the function. This is useful for keeping your code organized and avoiding naming conflicts.
+
+Pro Tip:
+You can use functions and while loops to create "improved" versions of actions.
+
+Example:
+<font color='#DDFF00FF'>
+move_steps(x) {
+    steps = 0;
+    while (steps < x) {
+        move();
+        steps = steps + 1;
+    }
+}
+</font>
+
+This example creates an improved version of the move() action that takes a number of steps as a parameter. You can then call the function and pass a value to it.
+
+
+<font pixel_size="12">2.6. Advanced scripting</font>
+The language allows for some more advanced features that can be used to create more complex scripts. These features are not necessary for basic scripting, but they can be useful for more advanced users.
+
+<font pixel_size="12">2.6.1. Nested functions</font>
+You can define functions inside other functions. This is called "nesting" and it allows you to create more complex scripts. The inner function will only be accessible inside the outer function.
+
+Example:
+<font color='#DDFF00FF'>
+func outer_function() {
+    func inner_function() {
+        move();
+    }
+    inner_function();
+}
+
+outer_function(); // This will call the outer function, which will call the inner function.
+</font>
+
+<font pixel_size="12">2.6.2. Nested loops</font>
+You can also nest loops inside other loops. The inner loop will only be accessible inside the outer loop.
+
+Example:
+<font color='#DDFF00FF'>
+repeat 5 {
+    repeat 3 {
+        move();
+    }
+}
+</font>
+
+This example will move the robot forward 15 times, because the inner loop will run 3 times for each iteration of the outer loop.
+
+<font pixel_size="12">2.6.3. Nested if statements</font>
+You can also nest if statements inside other if statements. The inner if statement will only be accessible inside the outer if statement. This can allow you to create more complex conditions.
+
+Example:
+<font color='#DDFF00FF'>
+if (see() == "wall") {
+    if (see() == "red") {
+        turn_left();
+    } else {
+        move();
+    }
+} else {
+    move();
+}
+</font>
+
+This example will check if the tile in front of the robot is a wall. If it is, it will check if the tile in front of it is a red robot. If it is, the robot will turn left. If it is not, the robot will move forward. If the tile in front of the robot is not a wall, the robot will move forward.
+
+<font pixel_size="12">2.6.4. Conditional declaration</font>
+Variables and functions can be placed inside an if-else loop. This means that, depending on the condition, the declared function will be different.
+
+Example:
+<font color='#DDFF00FF'>
+if (see() == "wall") {
+    func my_function() {
+        turn_left();
+    }
+    my_function();
+} else {
+    func my_function() {
+        move();
+    }
+    my_function();
+}
+</font>
+
+On this case, the my_function() function will be different depending on the condition. If the tile in front of the robot is a wall, the function will turn left. If it is not, the function will move forward.
+
+<font pixel_size="14">3. Using an IDE</font>
+If you are already familiar with programming, you can use any IDE you want to write your scripts. The language is very similar to C and Java, so any IDE that supports these languages should work. You can even use notepad if you find it more comfortable that the defult editor.
+
+First, move the camera AWAY from the robot script you wish to modify, as the script is saved whenever the camera is moved outside of the robot. 
+Then, go to data/level/{x_levelname}/script and find the file {your_name}_{robot_name}.sds. This is the file you need to modify.
+When you are done, save the changes return to the game and move the camera back to the robot. The script will be automatically loaded and you can run it.
+
