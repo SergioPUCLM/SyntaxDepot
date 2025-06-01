@@ -1,0 +1,18 @@
+{
+    "messages": [
+      "Ah. There you are. I was wondering when you'd show up. Welcome to the warehouse, Newbie.",
+      "I will be in charge of your training and overseeing your progress. Don't disappoint me.",
+      "My designation is \"Automated Robotic Instructional Assistant\", but you may may call me A.R.I.A. You know, for efficiency.",
+    "After months of deliberation, management concluded that the most cost effective pathfinding algorithm is... a human. So congratulations, Newbie. You got the job.",
+      "This terminal connects you to Sector C, your new domain. You will be in control of a staggering total of three robots. Yes, three. I know, it's a lot to take in.",
+      "Two of them are already on the way to the main warehouse floor. However, Red here has suffered some sort of malfunction, and the autopilot is down.",
+      "Bad news is it now requires manual intervention. Good news is it will make for a great introduction to see just what we are working with.",
+      "Your task: guide Red to its charger, before we can continue forward. These old rust buckets don't have the battery life they used to.",
+      "To control it, use 'move();', 'turn_left();', and 'turn_right();'. \nmove(); Will instruct Red to move forward one tile. \nturn_left(); and turn_right(); will rotate it 90 degrees in the respective direction.",
+      "Yes, you need the semicolon. Red gets confused without them. How else would you know where one command ends and the next begins? It's not like you can just write a whole paragraph and expect it to work.",
+      "Don't worry about breaking it, you will operate a simulation for now and the real actions will happen in the background once you have a functioning script.",
+      "Press Play to test your commands. Reset if it all goes sideways. Help if you want me to repeat myself. Again.",
+      "Now go on, Newbie. Show me some impressive logic. Or at least, functional syntax. Try not to crash it into anything, okay?",
+      "And by the way, if you happen to see any old disquettes lying around, please bring them to me. I need them for... research purposes. Nothing that concerns you."
+    ]
+}

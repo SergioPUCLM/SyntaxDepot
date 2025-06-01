@@ -26,6 +26,7 @@ SCREEN_HEIGHT = 600
 GAME_NAME = "Syntax Depot"
 DATA_FILE = "data/options.json"
 SPRITES_FOLDER = "res/sprites"
+SFX_FOLDER = "res/sfx"
 
 FONTS = ["res/fonts/PixelOperator8.ttf", "res/fonts/PixelOperatorMono8.ttf"]
 
@@ -72,19 +73,32 @@ def main():
     manager.get_theme().get_font_dictionary().add_font_path("PixelOperatorMono8", FONTS[1])  # Add the custom font 2
     manager.get_theme().load_theme("./res/theme.json")  # Load the theme
 
-    pygame.mixer.init()
+    pygame.mixer.init(channels=17)  # Initialize the mixer with 17 channels
+    pygame.mixer.set_num_channels(17)  # Channel 0 = music, 1- 16 = SFX
     sound_manager.initialize()
-    pygame.mixer.set_num_channels(2)  # Channel 0 = music, 1 = SFX
 
     error_handler.set_ui_manager(manager)  # Set the UI manager for the error handler
     error_handler.load_icons()  # Load the icons for the error handler
 
     # TODO: Load the sounds into the sound manager
+    # Example: sound_manager.load_sound("bg_music", "music.mp3", is_music=True)
+    sound_manager.load_sound("click", os.path.join(SFX_FOLDER, "click.wav"), is_music=False)  # Button click sound
+    sound_manager.load_sound("error", os.path.join(SFX_FOLDER, "error.wav"), is_music=False)  # Error sound
+    sound_manager.load_sound("warning", os.path.join(SFX_FOLDER, "warning.wav"), is_music=False)  # Warning sound
+    sound_manager.load_sound("info", os.path.join(SFX_FOLDER, "info.wav"), is_music=False)  # Info sound
+    sound_manager.load_sound("finish_level", os.path.join(SFX_FOLDER, "finish_level.wav"), is_music=False)  # Finish level sound
+    sound_manager.load_sound("reset_level", os.path.join(SFX_FOLDER, "reset_level.wav"), is_music=False)  # Reset level sound
+
+    sound_manager.load_sound("red_move", os.path.join(SFX_FOLDER, "red_move.wav"), is_music=False)  # Red move sound
+    sound_manager.load_sound("blue_move", os.path.join(SFX_FOLDER, "blue_move.wav"), is_music=False)  # Blue move sound
+    sound_manager.load_sound("green_move", os.path.join(SFX_FOLDER, "green_move.wav"), is_music=False)  # Green move sound
+
+    sound_manager.load_sound("collectable", os.path.join(SFX_FOLDER, "collectable.wav"), is_music=False)  # Collectable pickup sound
+
+    sound_manager.load_sound("trap_activate", os.path.join(SFX_FOLDER, "trap_activate.wav"), is_music=False)  # Trap activate sound
+
 
     # Check if options.json exists and if it has the correct data:
-    # Defaults:
-    # last_player = "Anonymous"
-    # mute = 0
     if not os.path.exists(DATA_FILE):
         logging.warning("Options file not found. Creating a new one.")
         with open(DATA_FILE, "w") as f:
@@ -183,7 +197,8 @@ def main():
         time_delta = clock.tick(FPS) / 1000.0  # Convert to seconds
 
         # Handle events
-        for event in pygame.event.get():
+        events = pygame.event.get()  # Get all events
+        for event in events:
             manager.process_events(event)
             match event.type:
                 case pygame.QUIT:
@@ -193,11 +208,11 @@ def main():
                     manager.set_window_resolution((event.w, event.h))
                     scenes[current_scene].resize()
                 case _:
-                    scenes[current_scene].handle_events(event)
+                    scenes[current_scene].handle_events(event) 
 
         # Update and render
         manager.update(time_delta)
-        error_handler.update(time_delta)
+        error_handler.update(time_delta, events) 
 
         screen.fill((0, 0, 0))  # Black background
         scenes[current_scene].render()
@@ -211,3 +226,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    

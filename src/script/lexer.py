@@ -93,5 +93,4 @@ def t_error(t):  # Error token
     print(f"Illegal character '{t.value[0]}' at line {t.lineno}")
     t.lexer.skip(1)
 
-
 lexer = lex.lex()

@@ -6,8 +6,10 @@ import logging
 from enum import Enum, auto
 from typing import Optional, Tuple
 from src.render.missing_image import missing_texture_pygame
+from src.render.sound_manager import sound_manager
 
 ICON_FOLDER = "res/sprites/"
+
 
 class ErrorLevel(Enum):
     """
@@ -88,6 +90,13 @@ class ErrorHandler:
         if not self.current_panel and self.error_queue and self.ui_manager:
             title, message, level = self.error_queue.pop(0)
             self._show_error(title, message, level)
+            match level:
+                case ErrorLevel.INFO:
+                    sound_manager.play("info", loops=0)
+                case ErrorLevel.WARNING:
+                    sound_manager.play("warning", loops=0)
+                case ErrorLevel.ERROR:
+                    sound_manager.play("error", loops=1)
 
     def _show_error(self, title, message, level):
         """
@@ -187,7 +196,6 @@ class ErrorHandler:
             text="OK",
             manager=self.ui_manager,
             container=self.current_panel,
-            #object_id="error_ok_button"
             object_id="good_button"
         )
 
@@ -208,21 +216,20 @@ class ErrorHandler:
             self.dismiss_current()
         self.error_queue.clear()
 
-    
-    def update(self, time_delta):
-        """Call this every frame to handle auto-dismiss timing and button events."""
+
+    def update(self, time_delta, events):
         if self.current_panel:
-            # Handle auto-dismiss for INFO and WARNING
+            # Auto dismiss logic
             if any(id.endswith("_info") or id.endswith("_warning") for id in self.current_panel.object_ids):
                 if pygame.time.get_ticks() - self._last_show_time > 5000:
                     self.dismiss_current()
 
             # Check if OK button was pressed
-            for event in pygame.event.get():
+            for event in events:
                 if event.type == pygame_gui.UI_BUTTON_PRESSED:
+                    sound_manager.play("click", loops=0)
                     if event.ui_element == self._ok_button:
                         self.dismiss_current()
-
 
 # Global instance
 error_handler = ErrorHandler()

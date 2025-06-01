@@ -385,6 +385,33 @@
             "border_width": "1"
         }
     },
+    "error_message_textbox.vertical_scroll_bar": {
+        "colours": {
+            "normal_bg": "#FFFFFF00",
+            "hovered_bg": "#FFFFFF30",
+            "disabled_bg": "#FFFFFF00"
+        },
+        "misc": {
+            "border_width": "0",
+            "shape": "rounded_rectangle",
+            "shape_corner_radius": "10",
+            "shadow_width": "0",
+            "enable_arrow_buttons": "0",
+            "width": 15
+        }
+    },
+    "error_message_textbox.vertical_scroll_bar.#sliding_button": {
+        "colours": {
+            "normal_bg": "#FFFFFFAA",
+            "hovered_bg": "#FFFFFFFF",
+            "disabled_bg": "#FFFFFF00"
+        },
+        "misc": {
+            "border_width": "0",
+            "shape": "rounded_rectangle",
+            "shape_corner_radius": "10"
+        }
+    },
 
     "score_popup": {
         "colours": {

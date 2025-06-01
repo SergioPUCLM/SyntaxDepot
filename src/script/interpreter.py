@@ -155,6 +155,11 @@ class CoroutineInterpreter:
         if isinstance(node, (int, str)):
             return node
 
+
+        if isinstance(node, FunctionDef):
+            return self._eval_FunctionDef(node)
+
+
         method = getattr(self, f"_eval_{type(node).__name__}", None)
         if method:
             gen = method(node)  # Call the method to get a generator
@@ -194,7 +199,7 @@ class CoroutineInterpreter:
         # First pass: register all functions
         for stmt in node.statements:
             if isinstance(stmt, FunctionDef):
-                yield from self._eval_FunctionDef(stmt)
+                self._eval_FunctionDef(stmt)
         
         # Second pass: execute other statements
         for stmt in node.statements:
@@ -218,7 +223,7 @@ class CoroutineInterpreter:
             'params': node.param,
             'body': node.body
         })
-        yield
+        return None  # No value to yield, just register the function
 
 
     def _eval_Assignment(self, node):

@@ -1,6 +1,7 @@
 """Sound manager class"""
 
 import pygame
+import logging
 from typing import Dict
 
 
@@ -15,14 +16,8 @@ class SoundManager:
         music_channel (pygame.mixer.Channel): The channel for playing music.
         sfx_channel (pygame.mixer.Channel): The channel for playing sound effects.
         muted (bool): Flag to indicate if sounds are muted.
-        sounds (dict): Dictionary to store loaded sounds with their names as keys.
-
-    Methods:
-        load_sound(name, path, is_music=False): Load a sound file and store it in the sound manager.
-        play(name, loops, volume=1.0): Play a sound by name.
-        stop_music(): Stop the music channel.
-        stop_all(): Stop all sounds.
-        toggle_mute(): Toggle mute on or off.
+        sounds (dict): Dictionary to store loaded sound effects.
+        music (dict): Dictionary to store music file paths.
     """
     _instance = None
     
@@ -36,10 +31,12 @@ class SoundManager:
     def __init__(self):
         if not self._initialized:
             self.music_channel = None
-            self.sfx_channel = None
+            self.sfx_channels = []
             self.muted = False
-            self.sounds = {}
+            self.sounds = {}  # For sound effects
+            self.music = {}   # For music file paths
             self._initialized = True
+            self.max_channels = 16  # Maximum number of sound channels
 
 
     def initialize(self):
@@ -47,7 +44,10 @@ class SoundManager:
         if not pygame.mixer.get_init():
             raise RuntimeError("pygame.mixer not initialized")
         self.music_channel = pygame.mixer.Channel(0)
-        self.sfx_channel = pygame.mixer.Channel(1)
+        self.sfx_channels = []  # Reset the list of sound effect channels
+        for i in range(1, self.max_channels + 1):
+            channel = pygame.mixer.Channel(i)
+            self.sfx_channels.append(channel)
 
 
     def load_sound(self, name, path, is_music=False):
@@ -60,17 +60,19 @@ class SoundManager:
             is_music (bool): Whether the sound is music or not.
         """
         try:
-            self.sounds[name] = pygame.mixer.Sound(path)
-            self.sounds[name].is_music = is_music
+            if is_music:
+                # Store music path
+                self.music[name] = path
+            else:
+                # Load sound effect immediately
+                self.sounds[name] = pygame.mixer.Sound(path)
         except pygame.error as e:
-            error_handler.push_error(
-                "Sound Error", 
-                f"Failed to load sound {name}: {str(e)}",
-                ErrorLevel.WARNING
-            )
+            logging.error(f"Failed to load sound {name}: {str(e)}")
+        except Exception as e:
+            logging.error(f"Unexpected error loading sound {name}: {str(e)}")
 
 
-    def play(self, name, loops, volume=1.0):
+    def play(self, name, loops=0, volume=1.0):  #FIXME: Sounds playing at the same time will interrupt each other
         """
         Play a sound by name.
 
@@ -79,30 +81,49 @@ class SoundManager:
             loops (int): The number of times to loop the sound.
             volume (float): The volume level (0.0 to 1.0).
         """
-        if self.muted or name not in self.sounds:
+        if self.muted:
             return
 
-        channel = self.music_channel if self.sounds[name].is_music else self.sfx_channel
-        channel.set_volume(volume)
-        channel.play(self.sounds[name], loops=loops)
+        if name in self.music:  # It's music
+            pygame.mixer.music.load(self.music[name])
+            pygame.mixer.music.set_volume(volume)
+            pygame.mixer.music.play(loops=loops)
+        elif name in self.sounds:  # It's a sound effect
+            # Find an available channel
+            for channel in self.sfx_channels:
+                if not channel.get_busy():
+                    channel.set_volume(volume)
+                    channel.play(self.sounds[name], loops=loops)
+                    break
+            else:
+                logging.warning(f"No available channel to play sound: {name}")
 
 
     def stop_music(self):
-        """Stop the music channel."""
-        self.music_channel.stop()
+        """Stop the music."""
+        pygame.mixer.music.stop()
 
 
     def stop_all(self):
         """Stop all sounds."""
-        self.music_channel.stop()
-        self.sfx_channel.stop()
+        pygame.mixer.music.stop()
+        for channel in self.sfx_channels:
+            channel.stop()
+
+
+    def stop_sfx(self):
+        """Stop all sound effects."""
+        for channel in self.sfx_channels:
+            channel.stop()
 
 
     def toggle_mute(self):
         """Toggle mute on or off."""
         self.muted = not self.muted
-        self.music_channel.set_volume(0 if self.muted else 1)
-        self.sfx_channel.set_volume(0 if self.muted else 1)
+        pygame.mixer.music.set_volume(0 if self.muted else 1)
+        for channel in self.sfx_channels:
+            channel.set_volume(0 if self.muted else 1)
+
 
 # Global instance
 sound_manager = SoundManager()

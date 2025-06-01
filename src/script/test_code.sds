@@ -1,7 +1,0 @@
-turn_right();
-
-func function () {
-    see();
-}
-
-function();

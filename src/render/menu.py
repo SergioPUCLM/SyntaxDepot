@@ -5,6 +5,7 @@ import pygame_gui
 import logging
 import json
 import os
+import time
 from string import ascii_letters, digits
 from pathlib import Path
 from src.render.missing_image import missing_texture_pygame
@@ -112,7 +113,7 @@ class MainMenu:
     def update_mute_button_image(self):
         # Scale the icon to fit the button
         icon_size = (int(self.mute_button.rect.width * 0.8), int(self.mute_button.rect.height * 0.8))
-        current_icon = self.mute_icon_surface if int(sound_manager.muted) == 0 else self.unmute_icon_surface
+        current_icon = self.unmute_icon_surface if int(sound_manager.muted) == 0 else self.mute_icon_surface
         scaled_icon = pygame.transform.scale(current_icon, icon_size)
         
         # Set the button's normal and hover images
@@ -141,8 +142,10 @@ class MainMenu:
         """Handles the events in this scene."""
         match event.type:
             case pygame_gui.UI_BUTTON_PRESSED:
+                sound_manager.play("click")
                 match event.ui_element:
                     case element if element is self.exit_button:
+                        time.sleep(0.2)
                         self.change_scene(None)
                     case element if element is self.play_button:
                         player_data_path = os.path.join(PLAYER_FOLDER, f"{self.player_name}.json")
@@ -152,9 +155,6 @@ class MainMenu:
                         self.change_scene("level_select")
                     case element if element is self.name_change_button:
                         self.toggle_name_change()
-                    case element if element is self.mute_button:
-                        sound_manager.toggle_mute()
-                        self.update_mute_button_image()
                     case element if element is self.mute_button:
                         sound_manager.toggle_mute()
                         self.update_mute_button_image()

@@ -12,9 +12,3 @@ The folder needs to contain the following files:
 
 Structure defines the structure the levels will have and the position the entities start.
 BG defines the tilemap. While not required, it will work better if the size of the bg is the (level_width * 64, level_height * 64).
-
-Other folders will be created when needed (DO NOT ADD THEM):
-- leaderboard.json
-- red
-- green
-- blue

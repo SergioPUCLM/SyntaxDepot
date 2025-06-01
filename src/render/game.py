@@ -42,7 +42,9 @@ class GameScreen:
             logging.error("Instructor image not found. Using fallback texture")
             self.instructor_image_surface = missing_texture_pygame(size_x=128, size_y=128)
 
-        self.game_manager.load_level(level_name)
+        if not self.game_manager.current_level:  # Fallback in case level_select transitions without loading the level
+            logging.warning(f"Preload failed for level '{level_name}'. Attempting to load it now.")
+            self.game_manager.load_level(level_name)
 
         if not self.game_manager.current_level:  # Level loading failed
             logging.error(f"Level '{level_name}' could not be loaded. Returning to level select.")
@@ -352,6 +354,7 @@ class GameScreen:
             case pygame.QUIT:
                 self.game_manager.save_script(self.code_input.get_text(), self.player_name)
             case pygame_gui.UI_BUTTON_PRESSED:
+                sound_manager.play("click")
                 match event.ui_element:
                     case self.exit_button:  # Exit button
                         error_handler.dismiss_all()
@@ -529,6 +532,11 @@ class GameScreen:
 
     def update(self, time_delta):
         self.manager.update(time_delta)
+        # Update the code ui
+        if self.game_manager.needs_ui_update:
+            self.update_code_input()
+            self.game_manager.needs_ui_update = False
+
         # Check for level completion
         if (self.game_manager.is_running and 
             not self.game_manager.is_paused and  
@@ -536,10 +544,11 @@ class GameScreen:
 
             score = self.game_manager.calculate_score()
             self.show_score_popup(score)
+            sound_manager.play("finish_level")
             self.game_manager.is_running = False  # Stop the game
 
         # Disable buttons based on game state
-        if self.game_manager.is_running or self.showing_help:
+        if self.game_manager.is_running or self.showing_help or self.score_overlay_visible:
             self.language_help_button.disable()
             self.play_button.disable()
             self.instructions_button.disable()
@@ -872,8 +881,9 @@ class GameScreen:
                             sprite = pygame.transform.rotate(sprite, rotation)
                             self.screen.blit(sprite, (screen_x, screen_y))
 
-                else:
-                    pygame.draw.rect(self.screen, (0, 0, 0), (screen_x, screen_y, self.tile_size - 1, self.tile_size - 1))
+                else:  # Void tiles
+                    #pygame.draw.rect(self.screen, (10, 10, 10), (screen_x, screen_y, self.tile_size - 1, self.tile_size - 1))
+                    pygame.draw.rect(self.screen, '#E6DCDA', (screen_x, screen_y, self.tile_size, self.tile_size))
 
 
     def resize(self):

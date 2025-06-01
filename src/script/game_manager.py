@@ -4,7 +4,7 @@ import os
 import pygame
 import logging
 from src.level.load_level import load_level
-from src.script.parser import parser, SyntaxErrorException
+from src.script.parser import parse_code
 from src.script.ats_nodes import *
 from src.script.interpreter import CoroutineInterpreter
 from src.entities.crate import Crate
@@ -30,6 +30,8 @@ class GameManager:
         self.success = True  # Whether the level was completed successfully (No errors or warnings happened)
         self.steps_taken = 0  # Number of steps taken in the level (for leaderboard purposes)
         self.completed = False  # Whether the level was completed
+        self.autosave_timer = 0  # Timer for autosaving the script
+        self.needs_ui_update = False  # Flag to indicate if the code ui needs to be updated
 
         self.entity_list = {  # Store entities for easy updates
             'tile': [],
@@ -127,6 +129,7 @@ class GameManager:
             self.success = True  # Reset the success flag
             self.steps_taken = 0  # Reset the steps taken
             self.completed = False  # Reset the completed flag
+            self.autosave_timer = 0  # Reset the autosave timer
         else:
             logging.error(f"Failed to load level: {level_folder}")
 
@@ -144,8 +147,10 @@ class GameManager:
 
     def reset_level(self):
         """Resets the current level, resetting all entities to their original positions and pausing the game."""
+        self.needs_ui_update = True
         self.load_level(self.level_folder)
         self.is_running = False  # Stop the game
+        sound_manager.play("reset_level")  # Play reset sound
 
 
     def pause_game(self):
@@ -250,16 +255,16 @@ class GameManager:
                 robot.script = script
 
                 try:
-                    tree = parser.parse(robot.script)
+                    tree = parse_code(robot.script)
                     interpteter = CoroutineInterpreter(self.current_level, robot)
                     coroutine = interpteter.run(tree)
                     next(coroutine)
                     self.coroutines[robot] = coroutine
                     logging.debug(f"Coroutine for {robot.__class__.__name__} created")
-                except SyntaxErrorException as e:
+                except SyntaxError as e:
                     error_handler.push_error(
                         "Script Syntax Error",
-                        f"Error in {robot.__class__.__name__}'s script:\n{e.user_friendly}",
+                        f"Error in {robot.__class__.__name__}'s script:\n{e}",
                         ErrorLevel.ERROR
                     )
                     logging.error(f"Syntax error in {robot.__class__.__name__}'s script: {e}")
@@ -342,7 +347,7 @@ class GameManager:
         """Updates the game state."""
         if self.is_running and not self.is_paused:
             self.frame_count += 1
-            if self.frame_count % 30 == 0:  # 60 for Every second
+            if self.frame_count % 30 == 0:  # 60 for Every second, 30 is normal
                 occupied_chargepads = 0
                 active_terminals = 0
                 present_collectables = 0
@@ -384,6 +389,8 @@ class GameManager:
                     if tile_entity.__class__.__name__.lower() == "trap":
                         if self.trap_delay <= 0:  # If the trap delay is 0, toggle the trap
                             tile_entity.active = not tile_entity.active
+                            if tile_entity.active:
+                                sound_manager.play("trap_activate")
                         # Check if a robot is above the trap, if trap is active, fail the level and reset
                         if tile_entity.active and self.current_level.tiles[tile_entity.y][tile_entity.x].entities['ground'] is not None:
                             if self.current_level.tiles[tile_entity.y][tile_entity.x].entities['ground'].__class__.__name__.lower() in ["red", "blue"]:

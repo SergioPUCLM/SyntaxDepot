@@ -17,6 +17,7 @@ from src.entities.input_ter import InputTer
 from src.entities.output_ter import OutputTer
 from src.entities.red import Red
 from src.entities.trap import Trap
+from src.render.error_handler import error_handler, ErrorLevel
 
 DEFAULT_LEVEL_PATH = "./data/level/"
 
@@ -41,21 +42,45 @@ def load_level(folder):
     chargepads = 0  # Number of charge pads
     ground_bots = 0  # Number of ground robots
     required_terminals = []
-    existing_terminals = []
+    existing_terminals = []  
     expected_heights = {  # Allowed heights for each entity type
         "tile": [ChargePad, Trap, CrateDel, CrateGen],
         "ground": [Blue, Red, Collectable, Crate, InputTer, OutputTer],
-        "air": [Green, Collectable]
+        "air": [Green, Collectable],
+        "camera": [Camera],
     }
 
     if not os.path.exists(structure):  # Fail if the structure file is missing
         logging.error(f"Level structure file not found: {structure}")
+        error_handler.push_error(
+            "Loading Error",
+            f"Level structure file not found: {structure}",
+            ErrorLevel.ERROR
+        )
         return None
 
     try:
         with open(structure, "r") as f:
             data = json.load(f)
 
+            if not data:  # Fail if the structure file is empty
+                logging.error("Level structure file is empty.")
+                error_handler.push_error(
+                    "Loading Error",
+                    "Level structure file is empty.",
+                    ErrorLevel.ERROR
+                )
+                return None
+
+            # Fail if the values expected are not present
+            if "size" not in data or "matrix" not in data or "entities" not in data:
+                logging.error("Level structure file is missing required keys.")
+                error_handler.push_error(
+                    "Loading Error",
+                    "Level structure file is missing required keys.\nCheck level creation manual.",
+                    ErrorLevel.ERROR
+                )
+                return None
             size = data["size"]  # Dimensions of the level
             matrix = data["matrix"]  # Matrix of the level
             entities = data["entities"]  # Entities in the level
@@ -109,7 +134,12 @@ def load_level(folder):
                         # Don't create an input terminal if the operation is not valid
                         if entity_type == "InputTer" and entity.get("operation") not in valid_operations:
                             logging.error(f"Invalid operation for InputTer: {entity.get('operation')}")
-                            continue  # Skip this entity
+                            error_handler.push_error(
+                                "Loading Error",
+                                f"Invalid operation for InputTer: {entity.get('operation')}\nThe only valid operations are: {valid_operations}",
+                                ErrorLevel.ERROR
+                            )
+                            return None
 
                         obj = entity_classes[entity_type](entity)  # Create the entity using the mapping
                         obj.height = numerical_height  # Change the height to the numerical value
@@ -118,18 +148,33 @@ def load_level(folder):
                             case "Red":
                                 if has_red:
                                     logging.error("Only one red robot is allowed in the level.")
+                                    error_handler.push_error(
+                                        "Loading Error",
+                                        "Only one red robot is allowed in the level.",
+                                        ErrorLevel.ERROR
+                                    )
                                     return None
                                 has_red = True
                                 ground_bots += 1
                             case "Blue":
                                 if has_blue:
                                     logging.error("Only one blue robot is allowed in the level.")
+                                    error_handler.push_error(
+                                        "Loading Error",
+                                        "Only one blue robot is allowed in the level.",
+                                        ErrorLevel.ERROR
+                                    )
                                     return None
                                 has_blue = True
                                 ground_bots += 1
                             case "Green":
                                 if has_green:
                                     logging.error("Only one green robot is allowed in the level.")
+                                    error_handler.push_error(
+                                        "Loading Error",
+                                        "Only one green robot is allowed in the level.",
+                                        ErrorLevel.ERROR
+                                    )
                                     return None
                                 has_green = True
                             case "ChargePad":
@@ -152,6 +197,14 @@ def load_level(folder):
                                     has_big_crate = True
                                 has_crates = True
                             case "OutputTer":
+                                if obj.color in required_terminals:
+                                    logging.error(f"Duplicate output terminal color: {obj.color}")
+                                    error_handler.push_error(
+                                        "Loading Error",
+                                        f"Duplicate output terminal color: {obj.color}",
+                                        ErrorLevel.ERROR
+                                    )
+                                    return None
                                 required_terminals.append(obj.color)
                             case "InputTer":
                                 existing_terminals.append(obj.input_ter_one)
@@ -159,6 +212,12 @@ def load_level(folder):
                                 level.objectives["terminals"] += 1
                         
                         if not level.add_entity(obj):
+                            logging.error(f"Failed to add entity {entity} to level.")
+                            error_handler.push_error(
+                                "Loading Error",
+                                f"Failed to add entity {entity} to level.\nCheck the coordinates aren't already occupied.",
+                                ErrorLevel.ERROR
+                            )
                             return None
                     else:
                         logging.error(f"Unknown entity type: {entity_type}")
@@ -172,51 +231,94 @@ def load_level(folder):
             # Step 6: Additional checks
             if not has_blue and not has_green and not has_red:  # Ensure at least one robot is present
                 logging.error("No robots were added to the level.")
+                error_handler.push_error(
+                    "Loading Error",
+                    "No robots were added to the level.\nAt least one robot is required.",
+                    ErrorLevel.ERROR
+                )
                 return None
 
             if chargepads > ground_bots:  # Ensure less or equal charge pads than ground robots
                 logging.error("Too many charge pads in the level.")
+                error_handler.push_error(
+                    "Loading Error",
+                    "Level has more charge pads than ground robots.\nThis is not allowed.",
+                    ErrorLevel.ERROR
+                )
                 return None
 
             for color in required_terminals:  # Ensure all required terminals are present
                 if color not in existing_terminals:
-                    logging.error(f"Missing input terminal for color: {color}")
+                    logging.error(f"Missing output terminal for color: {color}")
+                    error_handler.push_error(
+                        "Loading Error",
+                        f"A defined input terminal requires an output terminal of color {color}.\nThis terminal is missing.",
+                        ErrorLevel.ERROR
+                    )
                     return None
 
             if has_big_crate and not has_red:  # Ensure red robot is present if big crate is in the level
                 logging.error("Big crate requires a red robot to be moved.")
+                error_handler.push_error(
+                    "Loading Error",
+                    "Level has a big crate but no Red robot is present.\nRed is required to move big crates.",
+                    ErrorLevel.ERROR
+                )
                 return None
 
             if not has_blue and required_terminals:  # Ensure blue robot is present if terminals are required
                 logging.error("Blue robot is required to use terminals.")
+                error_handler.push_error(
+                    "Loading Error",
+                    "Level has terminals but no Blue robot is present.\nBlue is required to operate terminals.",
+                    ErrorLevel.ERROR
+                )
                 return None
 
             if not (has_green or has_red) and has_crates:  # Ensure green or red robot is present if crates are in the level
                 logging.error("Crates require a green or red robot to be moved.")
+                error_handler.push_error(
+                    "Loading Error",
+                    "Level has crates but no crate mover is present.\nCrate movers: Green, Red.",
+                    ErrorLevel.ERROR
+                )
                 return None
 
-            for entity in level.entities:  # Ensure that entities are placed at allowed heights
-                if entity.height == 0:
-                    if type(entity) not in expected_heights["tile"]:
-                        logging.error(f"Entity {entity} is not allowed at height tile level.")
-                        return None
-                elif entity.height == 1:
-                    if type(entity) not in expected_heights["ground"]:
-                        logging.error(f"Entity {entity} is not allowed at height ground level.")
-                        return None
-                elif entity.height == 2:
-                    if type(entity) not in expected_heights["air"]:
-                        logging.error(f"Entity {entity} is not allowed at height air level.")
-                        return None
-            
-            return None
-            #return level
+            for y in range(size[1]):  # Check all entities are on expected heights
+                for x in range(size[0]):
+                    tile = level.tiles[y][x]
+                    for height, entity in tile.entities.items():
+                        if entity is not None:
+                            if type(entity) not in expected_heights[height]:
+                                logging.error(f"Entity {entity} is on the wrong height.")
+                                error_handler.push_error(
+                                    "Loading Error",
+                                    f"Entity {entity} is on the wrong height: {height}.",
+                                    ErrorLevel.ERROR
+                                )
+                                return None
+            return level
 
     except json.JSONDecodeError as e:
         logging.error(f"Error decoding JSON: {e}")
+        error_handler.push_error(
+            "Loading Error",
+            f"Error decoding level structure JSON: {e}\nAre you sure the structure is valid?",
+            ErrorLevel.ERROR
+        )
     except KeyError as e:
         logging.error(f"Missing key in level JSON: {e}")
+        error_handler.push_error(
+            "Loading Error",
+            f"Missing key in level structure JSON: {e}\nAre you sure the structure has all required fields?",
+            ErrorLevel.ERROR
+        )
     except Exception as e:
         logging.error(f"Unknown error loading level: {e}")
+        error_handler.push_error(
+            "Loading Error",
+            f"Unknown error loading level: {e}\nPerhaps you forgot one of the entity keys? (tile, ground, air)\nAll must be present, even if empty.",
+            ErrorLevel.ERROR
+        )
 
     return None

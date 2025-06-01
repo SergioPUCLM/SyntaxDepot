@@ -101,7 +101,6 @@ class Level:
         for y in range(0, self.height * self.tile_size, self.tile_size):  # Create subimages to assign to tiles
             img_matrix.append([])
             for x in range(0, self.width * self.tile_size, self.tile_size):
-                #img_matrix[y // 64].append(img.subsurface(x, y, tile_size, tile_size))
                 img_matrix[y // self.tile_size].append(img.subsurface(x, y, self.tile_size, self.tile_size))
         return img_matrix
 
@@ -126,27 +125,40 @@ class Level:
             success = False
         else:
             tile = self.tiles[y][x]
-            match height:  # Replace entity if it already exists
+            match height:
                 case 0:  # Tile entities
-                    if tile.is_path:  # Tiles can only be placed on paths
+                    if tile.entities['tile'] is not None:  # Check if the tile is empty
+                        logging.error(f"Tile {tile} is already occupied by {tile.entities['tile']}.")
+                        success = False
+                    elif tile.is_path:  # Tiles can only be placed on paths
                         tile.entities['tile'] = entity
                     else:
                         logging.error(f"Entity {entity} cannot be placed on a wall.")
                         success = False
                 case 1:  # Ground entities
-                    if tile.is_path:  # Ground entities can only be placed on paths
+                    if tile.entities['ground'] is not None:
+                        logging.error(f"Tile {tile} is already occupied by {tile.entities['ground']}.")
+                        success = False
+                    elif tile.is_path:  # Ground entities can only be placed on paths
                         tile.entities['ground'] = entity
                     else:
                         logging.error(f"Entity {entity} cannot be placed on a wall.")
                         success = False
                 case 2:  # Air entities
-                    if tile.is_path or tile.is_mid_wall:  # Air entities can be placed on paths or mid-height walls
+                    if tile.entities['air'] is not None:
+                        logging.error(f"Tile {tile} is already occupied by {tile.entities['air']}.")
+                        success = False
+                    elif tile.is_path or tile.is_mid_wall:  # Air entities can be placed on paths or mid-height walls
                         tile.entities['air'] = entity
                     else:
                         logging.error(f"Entity {entity} cannot be placed on a wall.")
                         success = False
                 case 3:  # Camera entity
-                    tile.entities['camera'] = entity
+                    if tile.entities['camera'] is not None:
+                        logging.error(f"Tile {tile} is already occupied by {tile.entities['camera']}.")
+                        success = False
+                    else:
+                        tile.entities['camera'] = entity
                 case _:
                     logging.error(f"Invalid entity height: {height}")
                     success = False
@@ -171,7 +183,7 @@ class Level:
         Removes an entity from the level.
 
         Args:
-            entity (Entity): Entity to remove.ç
+            entity (Entity): Entity to remove.
         
         Returns:
             bool: True if the entity was successfully removed, False otherwise.
@@ -332,6 +344,7 @@ class Level:
                         # Remove the collectable from the tile and redo the teleport
                         collectable = self.tiles[new_y][new_x].entities[string_height]
                         self.remove_entity(collectable)
+                        sound_manager.play("collectable")
                         self.teleport_entity(entity, new_x, new_y)
                     else:
                         logging.error(f"Entity {entity} cannot move to ({new_x}, {new_y}). Tile is already occupied.")
@@ -360,6 +373,14 @@ class Level:
             )
             self.success = False  # Mark level as failed
             logging.error(f"Entity {entity} cannot move.")
+        else:
+            match entity.__class__.__name__.lower():
+                case "red":
+                    sound_manager.play("red_move")
+                case "green":
+                    sound_manager.play("green_move")
+                case "blue":
+                    sound_manager.play("blue_move")
         return success
 
     
@@ -398,6 +419,14 @@ class Level:
         else:
             logging.error(f"Invalid turn direction: {direction}")
             success = False
+        if success:
+            match entity.__class__.__name__.lower():
+                case "red":
+                    sound_manager.play("red_move")
+                case "green":
+                    sound_manager.play("green_move")
+                case "blue":
+                    sound_manager.play("blue_move")
         return success
 
 
@@ -476,6 +505,15 @@ class Level:
                         vision = "crategen_small" if ground_entity.type == "small" else "crategen"
                     case "collectable":
                         skip_ground = True  # Ignore collecables to make them invisible
+                    case "trap":
+                        # If active, return trap, if not return wall, empty or mid_height wall, depending on the tile
+                        if ground_entity.active:
+                            vision = "trap"
+                        else:
+                            if target_tile.is_mid_wall:
+                                vision = "mid_wall"
+                            elif not target_tile.is_path:
+                                vision = "wall"
                     case _:
                         vision = ground_entity.__class__.__name__.lower()
 
@@ -583,7 +621,7 @@ class Level:
                 success = False
             else:
                 target_entity = self.tiles[new_y][new_x].entities['ground']
-                if target_entity is None:
+                if target_entity is None and self.tiles[new_y][new_x].is_path:  # Check if the tile is empty and is not a wall
                     if entity.crate is not None:
                         entity.crate.x = new_x
                         entity.crate.y = new_y

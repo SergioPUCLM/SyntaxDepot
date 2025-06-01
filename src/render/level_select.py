@@ -5,6 +5,7 @@ import pygame_gui
 import logging
 import os
 import json
+from src.render.sound_manager import sound_manager
 
 LEVEL_FOLDER = "data/level/"
 PLAYER_FOLDER = "data/player/"
@@ -18,10 +19,11 @@ class LevelSelect:
         self.screen = screen
         self.manager = manager
         self.change_scene = change_scene
+        self.game_manager = game_manager
         self.buttons = []
         self.selected_level = None
         self.level_data = {}  # Stores level name & leaderboard info
-        self.player_level = self.load_player_level()  # Load player level from JSON
+        self.player_level = self.load_player_level()  # Load player level from JSON (Last level played)
         
         self.create_ui()
 
@@ -33,7 +35,7 @@ class LevelSelect:
 
         # Screen and layout sizing
         width, height = self.screen.get_size()
-        sidebar_width = int(width * 0.2)
+        sidebar_width = int(width * 0.25)
         grid_width = width - sidebar_width - PADDING
         panel_height = height - 100
 
@@ -73,6 +75,10 @@ class LevelSelect:
         col_count = 0
 
         for folder in sorted(os.listdir(LEVEL_FOLDER)):
+            # Skip non-directory items
+            if not os.path.isdir(os.path.join(LEVEL_FOLDER, folder)):
+                continue
+
             if not self.is_valid_level(folder):
                 continue
 
@@ -192,12 +198,15 @@ class LevelSelect:
         """Handles UI interactions."""
         match event.type:
             case pygame_gui.UI_BUTTON_PRESSED:
+                sound_manager.play("click")
                 for button, folder in self.buttons:
                     if event.ui_element == button:
                         self.select_level(folder)
                 match event.ui_element:
                     case self.play_button if self.selected_level:
-                        self.change_scene("game", self.selected_level, os.path.join(LEVEL_FOLDER, self.selected_level))
+                        self.game_manager.load_level(self.selected_level)  # Preload level
+                        if self.game_manager.current_level:
+                            self.change_scene("game", self.selected_level, os.path.join(LEVEL_FOLDER, self.selected_level))
                     case self.back_button:
                         self.change_scene("menu")
             case pygame.QUIT:

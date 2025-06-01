@@ -2,49 +2,8 @@ import logging
 import ply.yacc as yacc
 from src.script.lexer import tokens
 from src.script.lexer import reserved
+from src.script.lexer import lexer
 from src.script.ats_nodes import *
-
-
-class SyntaxErrorException(Exception):
-    def __init__(self, message, lineno=None, position=None, token=None):
-        self.message = message
-        self.lineno = lineno
-        self.position = position
-        self.token = token
-        self.user_friendly = self._make_user_friendly()
-        super().__init__(self.message)
-
-
-    def _make_user_friendly(self):
-        """Convert technical error messages to user-friendly ones"""
-        user_friendly_message = None
-        if "Syntax error at" in self.message:
-            match self.token:
-                case 'SEMICOLON' | ';':
-                    user_friendly_message = f"Missing semicolon at line {self.lineno}"
-                case 'RBRACE' | '}':
-                    user_friendly_message = f"Missing closing brace '}}' at line {self.lineno}"
-                case 'RPAREN' | ')':
-                    user_friendly_message = f"Missing closing parenthesis ')' at line {self.lineno}"
-                case 'LBRACE' | '{':
-                    user_friendly_message = f"Missing opening brace '{{' at line {self.lineno}"
-                case 'LPAREN' | '(':
-                    user_friendly_message = f"Missing opening parenthesis '(' at line {self.lineno}"
-                case _:
-                    user_friendly_message = f"Unexpected '{self.token}' at line {self.lineno}"
-        elif "Expected user-defined function" in self.message:
-            user_friendly_message = f"Cannot use '{self.token}' as a function name (it's a reserved word)"
-        elif "Unexpected action" in self.message:
-            user_friendly_message = f"Invalid action syntax at line {self.lineno}"
-        elif "invalid syntax" in self.message.lower():
-            return f"Invalid syntax at line {self.lineno}"
-        elif "unexpected indent" in self.message.lower():
-            return f"Unexpected indentation at line {self.lineno}"
-        elif "expected an indented block" in self.message.lower():
-            return f"Missing code block after control statement at line {self.lineno}"
-        else:
-            user_friendly_message = f"Syntax error at line {self.lineno}: {self.message}"
-        return user_friendly_message
 
 
 precedence = (
@@ -76,19 +35,24 @@ def p_statement_list(p):
 def p_statement(p):
     '''statement : assignment SEMICOLON
                  | action SEMICOLON
+                 | function_call SEMICOLON
                  | loop
                  | condition
                  | function_def
-                 | function_call SEMICOLON
                  | COMMENT'''
-    if p.slice[1].type == 'COMMENT':
-        p[0] = None  # Skip comments
+    if len(p) == 2 and p.slice[1].type == 'COMMENT':
+        p[0] = None
     else:
         p[0] = p[1]
 
 
 def p_assignment(p):
     '''assignment : IDENTIFIER ASSIGN expression'''
+    if p[1] in reserved:
+        raise SyntaxError(
+            f"At line {p.lineno(1)}: Cannot use reserved word '{p[1]}' as variable name. "
+            f"Please choose a different name for your variable."
+        )
     p[0] = Assignment(p[1], p[3])
 
 
@@ -165,10 +129,15 @@ def p_arithmetic_operator(p):
 def p_function_def(p):
     '''function_def : FUNC IDENTIFIER LPAREN RPAREN LBRACE statement_list RBRACE
                     | FUNC IDENTIFIER LPAREN parameter_list RPAREN LBRACE statement_list RBRACE'''
+    if p[2] in reserved:
+        raise SyntaxError(
+            f"At line {p.lineno(2)}: Cannot use reserved word '{p[2]}' as function name. "
+            f"Please choose a different name for your function."
+        )
     if len(p) == 9:  # With parameters
-        p[0] = FunctionDef(p[2], p[4], p[7])  # Pass parameters to the function definition
+        p[0] = FunctionDef(p[2], p[4], p[7])
     else:  # Without parameters
-        p[0] = FunctionDef(p[2], [], p[6])  # Pass empty list for parameters
+        p[0] = FunctionDef(p[2], [], p[6])
         
 
 def p_parameter_list(p):
@@ -250,18 +219,54 @@ def p_object_type(p):  # A string definition, but called like this since it's on
 
 
 def p_error(p):
-    if p:
-        raise SyntaxErrorException(
-            f"Syntax error at '{p.value}'",
-            lineno=p.lineno,
-            position=p.lexpos,
-            token=p.value
+    """
+    Robust generic error handler using match-case.
+    """
+    if p is None:
+        raise SyntaxError(
+            "Unexpected end of input. Did you forget to close a block (e.g., with '}' or ')') or miss a semicolon ';'?"
         )
-    else:
-        raise SyntaxErrorException("Syntax error at end of file - possibly missing closing brace or parenthesis")
+
+    token_type = p.type
+    value = p.value
+    line = p.lineno
+    col_info = f" (line {line})"
+
+    match token_type:
+        case "ELSE":
+            raise SyntaxError(f"Unexpected 'else'{col_info}. Is there a missing 'if' block above?")
+        case "RBRACE":
+            raise SyntaxError(f"Unmatched '}}'{col_info}. Did you forget to open a block with '{{'?")
+        case "LBRACE":
+            raise SyntaxError(f"Unexpected '{{'{col_info}. Blocks should follow control statements like 'if' or 'while'.")
+        case "RPAREN":
+            raise SyntaxError(f"Unmatched ')'{col_info}. Check for missing or misplaced '('.")
+        case "LPAREN":
+            raise SyntaxError(f"Unexpected '(' {col_info}. Did you forget a function or action name before it?")
+        case "SEMICOLON":
+            raise SyntaxError(f"Unexpected ';'{col_info}. You might have an extra semicolon or empty statement.")
+        case "IDENTIFIER":
+            raise SyntaxError(f"Unexpected identifier '{value}'{col_info}. Did you forget a keyword or a semicolon before it?")
+        case "NUMBER":
+            raise SyntaxError(f"Unexpected number '{value}'{col_info}. Did you forget to use it in an expression?")
+        case "QUOTE":
+            raise SyntaxError(f"Unexpected quote '{value}'{col_info}. Did you forget to close a string or use quotes correctly?")
+        case "COMMENT":
+            raise SyntaxError(f"Unexpected comment '{value}'{col_info}. Comments should not interrupt code flow.")
+        case "COMMA":
+            raise SyntaxError(f"Unexpected ','{col_info}. Are you missing an argument or value?")
+        case op if op in {"PLUS", "MINUS", "TIMES", "DIVIDE", "LT", "GT", "LE", "GE", "EQUAL", "NOTEQUAL"}:
+            raise SyntaxError(f"Unexpected operator '{value}'{col_info}. Are you missing an operand or expression?")
+        case kw if kw in {"MOVE", "TURN_LEFT", "TURN_RIGHT", "PICKUP", "DROP", "WAIT", "SEE", "READ", "WRITE"}:
+            raise SyntaxError(f"Unexpected action '{value}'{col_info}. Did you forget to add parentheses? Try '{value.lower()}();'")
+        case ctrl if ctrl in {"IF", "WHILE", "RETURN"}:
+            raise SyntaxError(f"Unexpected keyword '{value}'{col_info}. Is it in the wrong place, or missing a block or condition?")
+        case kw if kw in reserved.values():
+            raise SyntaxError(f"Unexpected keyword '{value}'{col_info}. Is it used in the wrong place?")
+        case _:
+            raise SyntaxError(f"Unexpected token '{value}' of type '{token_type}'{col_info}. Refer to the syntax help for guidance.")
 
 
-# Build the parser
 parser = yacc.yacc(debug=True, write_tables=False)
 
 
@@ -269,21 +274,18 @@ def parse_code(source_code):
     """
     Parses the given source code into an AST.
     Returns the Program node containing all statement_list.
-    Raises SyntaxErrorException if syntax errors are found.
     """
+    lexer.lineno = 1
+    lexer.input(source_code)  # Initialize the lexer with the source code
+
     try:
-        result = parser.parse(source_code)
+        result = parser.parse(source_code, tracking=True, lexer=lexer)
         if isinstance(result, Program):
             return result
         elif result is None:
             return Program([])
         else:
-            return Program([result] if result is not None else [])
-    except SyntaxErrorException as e:
-        # Enhance the error message with line context if available
-        if e.lineno and source_code:
-            lines = source_code.split('\n')
-            if 0 < e.lineno <= len(lines):
-                context = lines[e.lineno - 1].strip()
-                e.user_friendly += f"\nNear: '{context}'"
-        raise
+            return Program([result])
+    except SyntaxError as e:
+        logging.error(f"Syntax error: {e}")
+        raise e

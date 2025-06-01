@@ -26,9 +26,9 @@
       "ground": [
         { "type": "Blue", "x": 5, "y": 2, "direction": "N" },
         { "type": "Red", "x": 5, "y": 8, "direction": "S" },
-        { "type": "InputTer", "x": 1, "y": 2, "ter_one": "white", "ter_two": "green", "operation": "+"},
-        { "type": "OutputTer", "x": 9, "y": 3, "color": "white"},
-        { "type": "OutputTer", "x": 9, "y": 1, "color": "green"},
+        { "type": "InputTer", "x": 1, "y": 2, "ter_one": "#42e6f5", "ter_two": "#e0f542", "operation": "+"},
+        { "type": "OutputTer", "x": 9, "y": 3, "color": "#42e6f5"},
+        { "type": "OutputTer", "x": 9, "y": 1, "color": "#e0f542"},
         { "type": "Crate", "x": 8, "y": 3, "small": true },
         { "type": "Crate", "x": 8, "y": 7, "small": false },
         { "type": "Collectable", "x": 3, "y": 4 },
@@ -37,7 +37,8 @@
         { "type": "Collectable", "x": 7, "y": 6 }
       ],
       "air": [
-        { "type": "Green", "x": 8, "y": 5, "direction": "W" }
+        { "type": "Green", "x": 8, "y": 5, "direction": "W" },
+        { "type": "Collectable", "x": 8, "y": 6 }
       ]
     }
   }
