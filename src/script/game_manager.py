@@ -141,6 +141,7 @@ class GameManager:
             self.is_paused = False
             self.frame_count = 0
             self.compile_scripts(player_name)
+            sound_manager.play("play", fade_ms=500)
         else:
             logging.error("Cannot start game without a level loaded")
 
@@ -151,6 +152,7 @@ class GameManager:
         self.load_level(self.level_folder)
         self.is_running = False  # Stop the game
         sound_manager.play("reset_level")  # Play reset sound
+        sound_manager.play("think", fade_ms=500)
 
 
     def pause_game(self):
@@ -333,7 +335,7 @@ class GameManager:
         if not self.success or not self.current_level:
             return 0
 
-        base_percentage = 0.3
+        base_percentage = 0.5  # Base percentage for score calculation (Max % reduced)
         picked_collectables = self.completed_objectives["collectables"]
         total_collectables = self.current_level.objectives["collectables"]
         if total_collectables > 0:
@@ -431,6 +433,7 @@ class GameManager:
                                 self.current_level.tiles[tile_entity.y][tile_entity.x].entities['ground'] = new_crate
                                 self.entity_list['ground'].append(new_crate)  # Add the crate to the entity list
                                 tile_entity.crate_count -= 1
+                                sound_manager.play("crate_spawn")  # Play crate spawn sound
                     
                     # Step 2.4: Check crate deletors
                     if tile_entity.__class__.__name__.lower() == "cratedel":
@@ -441,6 +444,7 @@ class GameManager:
                                 if tile_entity.active:  # If the crate deletor is active
                                     # Delete the crate
                                     self.current_level.remove_entity(entity_above)
+                                    sound_manager.play("crate_delete")  # Play crate delete sound
 
                                     # Update the completed objectives
                                     if entity_above.small:

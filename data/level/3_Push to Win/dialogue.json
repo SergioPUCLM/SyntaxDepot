@@ -1,0 +1,14 @@
+{
+    "messages": [
+      "Welcome to Sector C, Newbie. You made it. Try not to get sentimental.",
+      "Now that the grand journey through corridors is complete, it's time for your very first actual assignment. Lucky you.",
+      "See that big square thing one room over? That's a crate. You do know what a crate looks like, right? Don't ask what's inside. We don't pay you to ask questions. Or I guess we do, but not about that.",
+      "Your task is simple, Newbie. Get that crate from there and deliver it. Where you ask? Of course, to that hatch over there. The one with the red outline. Once a crate is placed on top, the hatch will open and the crate will be lowered to wherever it is it needs to go.",
+      "Red interacts with what's directly in front of it. Not underneath, not behind. Straight ahead. Simple and predictable, just like I like it.",
+      "Use 'pickup();' to instruct red to pick up the crate with those big loader arms. You know, the ones that look like they could crush a small car? Yeah, those.",
+      "Once Red is standing in front of it with the crate, use 'drop();' to deposit the cargo gently. Or as gently as a 5 ton hunk of metal can manage. It's not a feather, after all.",
+      "If Red's not facing the right way, it won't pick up anything. So... aim carefully.",
+      "Test your plan, reset if needed, and remember: crates are heavy, but failure is heavier."
+    ]
+}
+  

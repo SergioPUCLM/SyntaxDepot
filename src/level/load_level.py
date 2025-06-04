@@ -209,6 +209,9 @@ def load_level(folder):
                             case "InputTer":
                                 existing_terminals.append(obj.input_ter_one)
                                 existing_terminals.append(obj.input_ter_two)
+                                # If the operation is a division, check the number of the second terminal
+                                if obj.operation == "/" and obj.input_ter_two.number == 0:
+                                    obj.input_ter_two.number = 1  # Prevent division by zero
                                 level.objectives["terminals"] += 1
                         
                         if not level.add_entity(obj):

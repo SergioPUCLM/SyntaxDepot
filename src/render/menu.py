@@ -31,9 +31,19 @@ class MainMenu:
             self.mute_icon_surface = pygame.image.load(os.path.join(SPRITE_FOLDER, "mute.png")).convert_alpha()
             self.unmute_icon_surface = pygame.image.load(os.path.join(SPRITE_FOLDER, "unmute.png")).convert_alpha()
         except FileNotFoundError:
-            logging.error("Icon not found. Using fallback texture")
+            logging.error("Mute icon not found. Using fallback texture")
             self.mute_icon_surface = missing_texture_pygame(size_x=16, size_y=16, color_on="#fc0303")
             self.unmute_icon_surface = missing_texture_pygame(size_x=16, size_y=16, color_on="#15FF00FF")
+
+        self.mute_music_icon_surface = None
+        self.unmute_music_icon_surface = None
+        try:
+            self.mute_music_icon_surface = pygame.image.load(os.path.join(SPRITE_FOLDER, "mute_music.png")).convert_alpha()
+            self.unmute_music_icon_surface = pygame.image.load(os.path.join(SPRITE_FOLDER, "unmute_music.png")).convert_alpha()
+        except FileNotFoundError:
+            logging.error("Mute music icon not found. Using fallback texture")
+            self.mute_music_icon_surface = missing_texture_pygame(size_x=16, size_y=16, color_on="#fc0303")
+            self.unmute_music_icon_surface = missing_texture_pygame(size_x=16, size_y=16, color_on="#15FF00FF")
 
         self.create_ui()
 
@@ -102,6 +112,18 @@ class MainMenu:
         # Set initial icon
         self.update_mute_button_image()
 
+
+        # Mute music button
+        self.mute_music_button = pygame_gui.elements.UIButton(
+            relative_rect=pygame.Rect((width - 100, height - 50), (40, 40)),
+            text="",
+            manager=self.manager,
+            object_id="neutral_button"
+        )
+
+        # Set initial icon for mute music button
+        self.update_mute_music_button_image()
+
         # Reset player data button
         self.reset_player_data_button = pygame_gui.elements.UIButton(
             relative_rect=pygame.Rect((10, height - 50), (width * 0.25, 40)),
@@ -138,6 +160,35 @@ class MainMenu:
             logging.error(f"Error saving options: {e}")
 
 
+    def update_mute_music_button_image(self):
+        # Scale the icon to fit the button
+        icon_size = (int(self.mute_music_button.rect.width * 0.8), int(self.mute_music_button.rect.height * 0.8))
+        current_icon = self.mute_music_icon_surface if int(sound_manager.music_muted) == 0 else self.unmute_music_icon_surface
+        scaled_icon = pygame.transform.scale(current_icon, icon_size)
+        
+        
+        # Set the button's normal and hover images
+        self.mute_music_button.normal_image = scaled_icon
+        self.mute_music_button.hovered_image = scaled_icon
+        self.mute_music_button.selected_image = scaled_icon
+        self.mute_music_button.rebuild()
+
+        try:
+            options_path = Path(DATA_FILE)
+            data = {}
+            if options_path.exists():
+                with open(options_path, 'r') as f:
+                    data = json.load(f)
+            
+            data["mute_music"] = int(sound_manager.music_muted)
+            options_path.parent.mkdir(parents=True, exist_ok=True)
+            
+            with open(options_path, 'w') as f:
+                json.dump(data, f)
+        except (json.JSONDecodeError, IOError) as e:
+            logging.error(f"Error saving options: {e}")
+
+
     def handle_events(self, event):
         """Handles the events in this scene."""
         match event.type:
@@ -158,6 +209,9 @@ class MainMenu:
                     case element if element is self.mute_button:
                         sound_manager.toggle_mute()
                         self.update_mute_button_image()
+                    case element if element is self.mute_music_button:
+                        sound_manager.toggle_music()
+                        self.update_mute_music_button_image()
                     case element if element is self.reset_player_data_button:
                         self.reset_player_data()
             case pygame.QUIT:

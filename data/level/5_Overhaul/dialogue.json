@@ -1,0 +1,16 @@
+{
+    "messages": [
+      "Ah. Nothing like the smell of industrial-grade inefficiency in the morning.",
+      "Welcome to your first challenge scenario, Newbie. Or not hard, but tedious, like all hauling work. Six crates, one Green bot, and a lovingly absurd amount of structural void.",
+      "No, I don't know why the warehouse was built this way. Probably something about airflow. Or drama.",
+      "Your task: collect each crate, carefully arranged on the far corners and edges, naturally, and bring them to the central hatch. You know the drill.",
+      "You've got everything you need. The real challenge? Doing it without writing a full screenplay.",
+      "Green doesn't care about gaps, pipes, or spatial nonsense, lucky for you. Just make sure your logic holds up better than the warehouse architecture.",
+      "Also, since your script's about to get... ambitious, here's a gift: comments.",
+      "Use // to write inline notes. Anything after it on the same line is ignored by the system. Great for leaving future-you passive-aggressive reminders.",
+      "For bigger chunks, use /* and */ to block out multiple lines. You can even use that to temporarily disable parts of your code. Like a safety net, but for logic errors.",
+      "You could brute-force this with enough copy-paste... or you could be clever. Impress me. Or at least, avoid embarrassing yourself.",
+      "And try not to think too hard about what's at the bottom of that pit. That kind of existential spiral is well above your clearance level."
+    ]
+  }
+  

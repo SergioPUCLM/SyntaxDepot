@@ -1,0 +1,26 @@
+{
+    "messages": [
+      "Look who's finally ready for something a little more intellectually stimulating. Or so we hope.",
+      "You didn't think we were going to let you just haul crates around forever, did you? That would be... well, boring.",
+      "Meet your last companion: Blue. Yes, I know, very original name. But hey, at least it's not another color.",
+      "Blue's not just a pretty face. This little bot is designed for one thing: math. Yes, you heard me right, math.",
+      "What Blue can do is interface with the warehouse's terminal network. That's right, we're letting you near the math now.",
+      "However, this comes at the cost of your precious crate-hauling. Blue's not built for that. Turns out fine motor skills are anithetical for heavy hauling.",
+      "Here is how it works: Arround the warehouse there are two types of terminals. Output terminals, which have a circle of a solid color, hold a numerical value for you to read.",
+      "Input terminals, which have a circle split in two colors, show an operation. Your job is to read the values from the output terminals, perform the operation, and write the result to the input terminal.",
+      "You'll need to walk Blue in front of a terminal and use 'read();'. However, you need to store this value temporarily to be able to make the operation.",
+      "This is where variables come in. Imagine they are a container where you place the value to use it later.",
+      "Variables are made with 3 simple ingredients, a name to identify it, a '=' to indicate you want to assign a variable, and a value to assign.",
+      "For example, to store the number 3, you could write 'var1 = 3;'. Now, everytime you want to use a 3, you can instead use 'var1'.",
+      "So naturally, to store the value, you simply store it in a variable like this 'var = read();'. You can name your variables anything... as long as it's something that won't confuse robots.",
+      "You can't exactly expect Blue to understand what 'moving' is if on top of the command you have a move variable.",
+      "Finally, with your newly stored value, you can perform the operation shown on the terminal. The icons should be self-explanatory if you finished primary school.",
+      "You can use the 'write()' command to send the result back to the input terminal. But remember, Blue is not a mind reader. It can't guess what you want to do.",
+      "So to write, you have to specify a value to be written. For example, to write a 3, you would use 'write(3);'. Or if you want to write the value of a variable, you can use 'write(var1);'.",
+      "You can use +, -, * or /. That's all you need. Don't get fancy, the terminals certainly won't.",
+      "Oh, and just like Red, Blue only sees what's directly in front of them and is limited to the ground. No peripheral vision upgrade. Budget cuts.",
+      "Go on then, Newbie. Solve a little math puzzle. Make Blue proud. Or at least, not confused.",
+      "Don't worry, this will probably be the largest amount of text you'll have to read in this warehouse. At least for now."
+    ]
+  }
+  

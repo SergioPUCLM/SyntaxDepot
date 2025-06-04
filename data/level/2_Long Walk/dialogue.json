@@ -9,9 +9,9 @@
         "You can put nearly anything inside a loop, not just move();. You can even put more loops inside loops. But let's keep things simple for now.",
         "Also, you don't need to place everything on one line, have some sense of aesthetic. Use multiple lines if you want, just make sure the loop is properly closed with a '}'.",
         "Think of it like telling Red: \"Do this thing, x times.\" Much more efficient than babysitting every step.",
-        "You're still in a simulation, so feel free to test, reset, and experiment. It's the one part of this job that won't get you fired for breaking something.",
-        "Go ahead, loop it up. Unless you like typing 'move();' twenty times. In which case... you do you.",
-        "Im feeling so nice today, I'll even give you an example, don't say I never did anything for you.\n\nrepeat 14 {\n  move();\n} This should get you through the first section",
+        "Feel free to test, reset, and experiment. It's the one part of this job that won't get you fired for breaking something.",
+        "Go ahead and loop it up. Unless you like repetition that mucch. Hey, idle clicker games exist for a reason, so you do you.",
+        "Im feeling so nice today, I'll even give you an example, don't say I never did anything for you.\n\nrepeat 14 {\n  move();\n}\n\nThis should get you through the first section",
         "The rest is up to you. Don't let me down now, Newbie."
     ]
   }

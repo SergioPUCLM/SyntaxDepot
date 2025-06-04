@@ -348,7 +348,14 @@ class Level:
                         self.teleport_entity(entity, new_x, new_y)
                     else:
                         logging.error(f"Entity {entity} cannot move to ({new_x}, {new_y}). Tile is already occupied.")
-                        success = False
+                        success = Falseç
+            # After movement is confirmed successful
+            if success and entity.__class__.__name__.lower() in ["red", "blue"]:
+                # Check if target position has a chargepad
+                target_tile = self.tiles[entity.y][entity.x]
+                if (target_tile.entities['tile'] and 
+                    target_tile.entities['tile'].__class__.__name__.lower() == "chargepad"):
+                    sound_manager.play("charge")
         return success
     
 
@@ -560,6 +567,10 @@ class Level:
                             entity.crate.x = None  # Temporarelly disable it's coordinates
                             entity.crate.y = None
                             logging.info(f"Entity {entity} picked up crate {target_entity}.")
+                            if target_entity.small:
+                                sound_manager.play("pickup_small")
+                            else:
+                                sound_manager.play("pickup_big")
                         case "green":
                             if target_entity.small:
                                 entity.crate = target_entity
@@ -567,6 +578,7 @@ class Level:
                                 entity.crate.x = None
                                 entity.crate.y = None
                                 logging.info(f"Entity {entity} picked up crate {target_entity}.")
+                                sound_manager.play("pickup_small")
                             else:
                                 error_handler.push_error(
                                     "Execution Problem",
@@ -625,7 +637,11 @@ class Level:
                     if entity.crate is not None:
                         entity.crate.x = new_x
                         entity.crate.y = new_y
-                        self.add_entity(entity.crate)    
+                        self.add_entity(entity.crate)
+                        if entity.crate.small:
+                            sound_manager.play("drop_small")
+                        else:
+                            sound_manager.play("drop_big")
                         entity.crate = None
                         logging.info(f"Entity {entity} dropped crate at ({new_x}, {new_y}).")
                     else:
@@ -759,6 +775,7 @@ class Level:
                         if result == data:
                             target_entity.activated = True
                             logging.info(f"Entity {entity} wrote {data} to {target_entity}.")
+                            sound_manager.play("correct")
                         else:
                             error_handler.push_error(
                                 "Execution Problem",
@@ -767,6 +784,7 @@ class Level:
                             )
                             self.success = False  # Mark level as failed
                             logging.error(f"Entity {entity} failed to write {data} to {target_entity}.")
+                            sound_manager.play("incorrect")
                             success = False
                 else:
                     error_handler.push_error(

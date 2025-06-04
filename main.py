@@ -80,23 +80,36 @@ def main():
     error_handler.set_ui_manager(manager)  # Set the UI manager for the error handler
     error_handler.load_icons()  # Load the icons for the error handler
 
-    # TODO: Load the sounds into the sound manager
-    # Example: sound_manager.load_sound("bg_music", "music.mp3", is_music=True)
+    # Load sounds
     sound_manager.load_sound("click", os.path.join(SFX_FOLDER, "click.wav"), is_music=False)  # Button click sound
     sound_manager.load_sound("error", os.path.join(SFX_FOLDER, "error.wav"), is_music=False)  # Error sound
     sound_manager.load_sound("warning", os.path.join(SFX_FOLDER, "warning.wav"), is_music=False)  # Warning sound
     sound_manager.load_sound("info", os.path.join(SFX_FOLDER, "info.wav"), is_music=False)  # Info sound
     sound_manager.load_sound("finish_level", os.path.join(SFX_FOLDER, "finish_level.wav"), is_music=False)  # Finish level sound
     sound_manager.load_sound("reset_level", os.path.join(SFX_FOLDER, "reset_level.wav"), is_music=False)  # Reset level sound
+    sound_manager.load_sound("help", os.path.join(SFX_FOLDER, "help.wav"), is_music=False)  # Help sound
 
     sound_manager.load_sound("red_move", os.path.join(SFX_FOLDER, "red_move.wav"), is_music=False)  # Red move sound
     sound_manager.load_sound("blue_move", os.path.join(SFX_FOLDER, "blue_move.wav"), is_music=False)  # Blue move sound
     sound_manager.load_sound("green_move", os.path.join(SFX_FOLDER, "green_move.wav"), is_music=False)  # Green move sound
-
+    sound_manager.load_sound("pickup_big", os.path.join(SFX_FOLDER, "pickup_big.wav"), is_music=False)  # Big pickup sound
+    sound_manager.load_sound("pickup_small", os.path.join(SFX_FOLDER, "pickup_small.wav"), is_music=False)  # Small pickup sound
+    sound_manager.load_sound("drop_big", os.path.join(SFX_FOLDER, "drop_big.wav"), is_music=False)  # Big drop sound
+    sound_manager.load_sound("drop_small", os.path.join(SFX_FOLDER, "drop_small.wav"), is_music=False)  # Small drop sound
+    sound_manager.load_sound("correct", os.path.join(SFX_FOLDER, "correct.wav"), is_music=False)  # Correct sound
+    sound_manager.load_sound("incorrect", os.path.join(SFX_FOLDER, "incorrect.wav"), is_music=False)  # Incorrect sound
+    sound_manager.load_sound("crate_spawn", os.path.join(SFX_FOLDER, "crate_spawn.wav"), is_music=False)  # Crate spawn sound
+    sound_manager.load_sound("crate_delete", os.path.join(SFX_FOLDER, "crate_delete.wav"), is_music=False)  # Crate delete sound
+    sound_manager.load_sound("charge", os.path.join(SFX_FOLDER, "charge.wav"), is_music=False)  # Charge sound
     sound_manager.load_sound("collectable", os.path.join(SFX_FOLDER, "collectable.wav"), is_music=False)  # Collectable pickup sound
-
     sound_manager.load_sound("trap_activate", os.path.join(SFX_FOLDER, "trap_activate.wav"), is_music=False)  # Trap activate sound
 
+    # Load music
+    sound_manager.load_sound("menu", os.path.join(SFX_FOLDER, "menu.wav"), is_music=True)  # Menu music
+    sound_manager.load_sound("think", os.path.join(SFX_FOLDER, "TEST1.wav"), is_music=True)  # Thinking music
+    sound_manager.load_sound("play", os.path.join(SFX_FOLDER, "TEST2.wav"), is_music=True)  # Play music
+
+    sound_manager.play("menu", fade_ms=1000)  # Play the menu music
 
     # Check if options.json exists and if it has the correct data:
     if not os.path.exists(DATA_FILE):
@@ -112,29 +125,31 @@ def main():
                     logging.warning("Options file is not a dictionary. Recreating the file.")
                     f.seek(0)
                     f.truncate()
-                    f.write('{"last_player": "Anonymous", "mute": 0}')
-                if "last_player" not in options or "mute" not in options:
+                    f.write('{"last_player": "Anonymous", "mute": 0, "mute_music": 0}')
+                if "last_player" not in options or "mute" not in options or "mute_music" not in options:
                     # Recreate the file with default values
                     logging.warning("Options file is missing keys. Recreating the file.")
                     f.seek(0)
                     f.truncate()
-                    f.write('{"last_player": "Anonymous", "mute": 0}')
+                    f.write('{"last_player": "Anonymous", "mute": 0, "mute_music": 0}')
             except (json.JSONDecodeError, ValueError) as e:
                 # Recreate the file if there's a JSON error
                 logging.warning(f"Options file is corrupted: {e}. Recreating the file.")
                 with open(DATA_FILE, "w") as f:
-                    f.write('{"last_player": "Anonymous", "mute": 0}')
+                    f.write('{"last_player": "Anonymous", "mute": 0, "mute_music": 0}')
             except Exception as e:
                 # Catch all other exceptions
                 logging.error(f"Unexpected error while loading options: {e}. Recreating the file.")
                 with open(DATA_FILE, "w") as f:
-                    f.write('{"last_player": "Anonymous", "mute": 0}')
+                    f.write('{"last_player": "Anonymous", "mute": 0, "mute_music": 0}')
 
     # Load the mute setting
     with open(DATA_FILE, "r") as f:
         options = json.load(f)
         if int(sound_manager.muted) != options["mute"]:
             sound_manager.toggle_mute()
+        if int(sound_manager.music_muted) != options.get("mute_music", 0):
+            sound_manager.toggle_music()
 
     try:
         icon = pygame.image.load(os.path.join(SPRITES_FOLDER, "icon.png"))  # Load the icon
@@ -143,7 +158,6 @@ def main():
         icon = missing_texture_pygame(size_x=32, size_y=32)
 
     pygame.display.set_icon(icon)  # Set the icon
-
 
     # Scene management
     def change_scene(new_scene, level_name=None, level_folder=None):
@@ -164,13 +178,19 @@ def main():
         # Create the new scene
         match new_scene:
             case "game":
+                if sound_manager.current_music != "think":
+                    sound_manager.play("think", fade_ms=500)
                 raw_name = level_name.split("_", 1)[1]
                 scenes[new_scene] = GameScreen(screen, manager, change_scene, game_manager, level_name, level_folder)
                 pygame.display.set_caption(f"{GAME_NAME} - Playing level: {raw_name}")
             case "level_select":
+                if sound_manager.current_music != "menu":
+                    sound_manager.play("menu", fade_ms=500)
                 scenes[new_scene] = LevelSelect(screen, manager, change_scene, game_manager)
                 pygame.display.set_caption(f"{GAME_NAME} - Pick a level")
             case "menu":
+                if sound_manager.current_music != "menu":
+                    sound_manager.play("menu", fade_ms=500)
                 scenes[new_scene] = MainMenu(screen, manager, change_scene)
                 pygame.display.set_caption(f"{GAME_NAME} - Main menu")
 

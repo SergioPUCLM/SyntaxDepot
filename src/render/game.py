@@ -409,7 +409,7 @@ class GameScreen:
 
             case pygame.KEYDOWN:  # Keyboard input
                 if not self.code_input.is_focused and not self.score_overlay_visible:
-                    if event.key in (pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT, pygame.K_w, pygame.K_s, pygame.K_a, pygame.K_d):
+                    if event.key in (pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT, pygame.K_w, pygame.K_s, pygame.K_a, pygame.K_d, pygame.K_F1):
                         if not self.game_manager.is_running:
                             self.game_manager.save_script(self.code_input.get_text(), self.player_name)
                         match event.key:
@@ -421,6 +421,11 @@ class GameScreen:
                                 self.game_manager.move_camera("left")
                             case pygame.K_RIGHT | pygame.K_d:
                                 self.game_manager.move_camera("right")
+                            case pygame.K_F1:
+                                if not self.language_help_panel.visible:
+                                    error_handler.dismiss_all()
+                                    self.show_language_help()
+                                    
                         if not self.game_manager.is_running:
                             self.update_code_input()
 
@@ -448,6 +453,8 @@ class GameScreen:
         self.reset_button.disable()
         self.code_input.disable()
         self.instructions_button.disable()
+
+        sound_manager.play("help")
 
 
     def display_instructions(self):
