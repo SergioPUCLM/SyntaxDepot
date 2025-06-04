@@ -267,7 +267,7 @@ def p_error(p):
             raise SyntaxError(f"Unexpected token '{value}' of type '{token_type}'{col_info}. Refer to the syntax help for guidance.")
 
 
-parser = yacc.yacc(debug=True, write_tables=False)
+parser = yacc.yacc(debug=False, write_tables=False)
 
 
 def parse_code(source_code):

@@ -146,7 +146,7 @@ class SoundManager:
             pygame.mixer.music.set_volume(0)
         else:
             pygame.mixer.music.set_volume(1)
-            if self.current_music:
+            if self.current_music and not self.music_muted:
                 self.play(self.current_music, fade_ms=self.fade_time)
 
 

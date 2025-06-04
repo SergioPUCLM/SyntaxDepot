@@ -71,7 +71,7 @@ def main():
     manager = pygame_gui.UIManager((SCREEN_WIDTH, SCREEN_HEIGHT))  # Create the UI manager
     manager.get_theme().get_font_dictionary().add_font_path("PixelOperator8", FONTS[0])  # Add the custom font 1
     manager.get_theme().get_font_dictionary().add_font_path("PixelOperatorMono8", FONTS[1])  # Add the custom font 2
-    manager.get_theme().load_theme("./res/theme.json")  # Load the theme
+    manager.get_theme().load_theme("./theme.json")  # Load the theme
 
     pygame.mixer.init(channels=17)  # Initialize the mixer with 17 channels
     pygame.mixer.set_num_channels(17)  # Channel 0 = music, 1- 16 = SFX
