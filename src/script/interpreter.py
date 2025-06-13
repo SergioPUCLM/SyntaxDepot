@@ -1,12 +1,11 @@
 """Coroutine Interpreter class"""
-from src.script.ats_nodes import *
+from src.script.ast_nodes import *
 
 
 class CoroutineInterpreter:
     """
     Coroutine Interpreter for executing a script in a coroutine-like manner.
-    This interpreter is responsible for executing the script
-    in a coroutine-like manner, using a stack of environments
+    This interpreter is responsible for executing the script using a stack of environments
     to manage local variables and function calls.
     Attributes:
         level (Level): The level where actions should be executed.
@@ -142,10 +141,9 @@ class CoroutineInterpreter:
         Yields:
             The result of the evaluation.
         """
-        print(f"INERP DEBUG: Evaluating node: {node}")
 
         if node is None:
-            raise RuntimeError("Tried to evaluate a None node — possible missing parser return?")
+            raise RuntimeError("Tried to evaluate a None node. Possible missing parser return?")
 
         # Handle literal values
         if isinstance(node, Literal):
@@ -155,7 +153,11 @@ class CoroutineInterpreter:
         if isinstance(node, (int, str)):
             return node
 
+        # Handle variables
+        if isinstance(node, Variable):
+            return self._eval_Variable(node)
 
+        # Handle function definitions
         if isinstance(node, FunctionDef):
             return self._eval_FunctionDef(node)
 
@@ -194,7 +196,6 @@ class CoroutineInterpreter:
         Yields:
             The results of the evaluation of each statement.
         """
-        print(f"INERP DEBUG: Evaluating program with {len(node.statements)} statements")
     
         # First pass: register all functions
         for stmt in node.statements:
@@ -218,7 +219,6 @@ class CoroutineInterpreter:
         Yields:
             None
         """
-        print(f"INERP DEBUG: Registering function {node.name} with {len(node.body)} statements")
         self.set_var(node.name, {
             'params': node.param,
             'body': node.body
@@ -251,7 +251,7 @@ class CoroutineInterpreter:
         Args:
             node (Identifier): The identifier node to evaluate.
 
-        Yields:
+        Returns:
             The value of the variable.
         """
         return self.get_var(node.name)
@@ -266,7 +266,7 @@ class CoroutineInterpreter:
         Args:
             node (Literal): The literal node to evaluate.
 
-        Yields:
+        Returns:
             The literal value.
         """
         return node.value  # Return the literal value  (Numbers and Strings)
@@ -325,14 +325,14 @@ class CoroutineInterpreter:
             The result of the action execution.
         """
         action_map = {
-            "move": lambda args: self.level.move(self.entity),
-            "turn": lambda args: self.level.turn(self.entity, *args),
-            "see": lambda args: self.level.see(self.entity),
-            "pickup": lambda args: self.level.pickup(self.entity),
-            "drop": lambda args: self.level.drop(self.entity),
-            "read": lambda args: self.level.read(self.entity),
-            "write": lambda args: self.level.write(self.entity, *args),
-            "wait": lambda args: self.level.wait(self.entity)
+        "move": lambda args: self.level.move(self.entity),
+        "turn": lambda args: self.level.turn(self.entity, *args),
+        "see": lambda args: self.level.see(self.entity),
+        "pickup": lambda args: self.level.pickup(self.entity),
+        "drop": lambda args: self.level.drop(self.entity),
+        "read": lambda args: self.level.read(self.entity),
+        "write": lambda args: self.level.write(self.entity, *args),
+        "wait": lambda args: self.level.wait(self.entity)
         }
 
         evaluated_args = []
@@ -345,11 +345,11 @@ class CoroutineInterpreter:
         if node.name not in action_map:
             raise RuntimeError(f"Unknown action: {node.name}")
 
-        if node.name not in action_map:
-            raise RuntimeError(f"Unknown action: {node.name}")
-
         result = action_map[node.name](evaluated_args)
-        yield  # Pause after action
+        
+        # Don't yield on see()
+        if node.name != "see":
+            yield  # Pause after action
         return result
 
 
@@ -407,19 +407,16 @@ class CoroutineInterpreter:
             The results of the evaluation of the body.
         """
         times = yield from self._eval(node.times)
-        print(f"INERP DEBUG: Repeat count evaluated to {times} (type: {type(times)})")
 
         if not isinstance(times, int):
             raise RuntimeError(f"Repeat count must be an int, got {type(times)}")
 
         # Ensure body is a list
         body = node.body if isinstance(node.body, list) else [node.body]
-        print(f"INERP DEBUG: Repeat body = {body}")
 
         try:
             for _ in range(times):
                 for stmt in body:
-                    print(f"INERP DEBUG: Executing repeat stmt: {stmt}")
                     yield from self._eval(stmt)
         except Exception as e:
             raise RuntimeError(f"Repeat loop failed: {e}")
@@ -437,7 +434,6 @@ class CoroutineInterpreter:
         Yields:
             The results of the function execution.
         """
-        print(f"INERP DEBUG: Calling function {node.name}")
     
         # Get the function definition
         try:
@@ -453,8 +449,6 @@ class CoroutineInterpreter:
         for arg in node.args:
             arg_value = yield from self._eval(arg)
             evaluated_args.append(arg_value)
-        
-        print(f"INERP DEBUG: Calling {node.name} with args: {evaluated_args}")
         
         # Parameter validation
         if len(evaluated_args) != len(func_def['params']):
@@ -490,7 +484,7 @@ class CoroutineInterpreter:
         return node.name  # it's just a string identifier
 
 
-    def _eval_Variable(self, node):
+    def _eval_Variable(self, node):#MODIFIED
         """
         Evaluate a variable node by looking up its value in the current environment.
         This method retrieves the value of the variable from the environment.
@@ -501,7 +495,5 @@ class CoroutineInterpreter:
         Yields:
             The value of the variable.
         """
-        print(f"INERP DEBUG: Looking up variable: {node.name}")
         value = self.get_var(node.name)
-        print(f"INERP DEBUG: Found value: {value}")
-        yield value
+        return value # CHANGED FROM YIELD TO RETURN

@@ -1,0 +1,26 @@
+{
+    "messages": [
+      "Welcome to the breaker hallway, where the floor is... occasionally lethal.",
+      "No one knows why all these faulty breaker boxes activate at the same time. Warehouse design truly is a mystery wrapped in a lawsuit.",
+      "Red here needs to make it to the delivery hatch. With a crate. Across that hallway. Without getting fried. Simple!",
+      "Thankfully, our bots are equipped with cameras. Basic ones, but good enough to spot traps when they're active.",
+      "To peek at what's ahead, use: 'see();'. It returns a string like \"trap\", \"crate\", \"wall\",  whatever's right in front of Red.",
+      "Good news: using 'see();' doesn't slow the bots down. Our bots can multitask a bit, just like they do with arithmetic operations. So feel free to check ahead as much as you want, its on the house.",
+      "Now, I assume you remember basic logic from school? If-else statements let you run code only when a condition is true.",
+      "For example:\n\n\nif (see() == \"trap\") {\n  wait();\n} else {\n  move();\n}\n\nThis will instruct the robot to move only if they don't have a trap in front. Not bad, right?",
+      "Oh yeah and remember to use \" when you write a string, otherwise it might get confused for an instruction.",
+      "Instead of moving blindly into danger, Red can now think. Slightly. Still not a genius. That's your job.",
+      "We're also introducing 'while' loops, the big brother of repeat loops.  These repeat as long as a condition stays true. Great for keeping Red moving until a goal is reached.",
+      "For example:\n\n\nvision = \"\";\nwhile (vision != \"cratedel\") {\n  vision = see();\n  move();\n}\n\nThis will keep Red moving until they see the delivery hatch. No more counting with the fingers. Or toes. Or whatever Red uses to count.",
+      "Oh, and quick reminder, conditions accept these: '==', '!=', '<', '>', '<=', '>='\nAll your classic operators are here. Use them wisely.",
+      "One warning: Red doesn't see inactive traps. If a tile looks safe but suddenly sparks, that's why. It's not a bug, it's a feature, or so we were told.",
+      "Technically, you could dodge the timing with a dozen 'wait();' and some interpretive dance. But that would tank your score, and make me very disapointed. After all, im here teaching you efficiency, and would be quite rude of you to waste my time.",
+      "You do remember the score system, right? Every action adds points. Fewer steps = better score. Traps add drama, not points.",
+      "Now, code smart. Watch the sparks. And don't ask why a warehouse crate hallway doubles as a shock therapy tunnel. Just logistics things.",
+      "Oh, almost forgot. Here's a list of things 'see();' might return, depending on what's directly in front of your bot",
+      "- \"empty\"\n- \"wall\"\n- \"mid_wall\"\n- \"red\"\n- \"blue\"\n- \"green\"\n- \"crate\"\n- \"crate_small\"\n- \"inputer\"\n- \"outputer\"\n- \"chargepad\"\n- \"cratedel\"\n- \"crategen\"\n- \"crategen_small\"\n- \"trap\" (only if it's actively zapping)",
+      "Green sees what's underneath, Red and Blue see what's ahead. And no, 'see();' won't spot disquettes, I made sure of that.",
+      "Oh and don't worry, I don't expect you to memorize all of that, that's what the manual is for. Simply press the \"?\" button or F1 to open the manual. I know it has quite the large amount of information, but it is categorized so you shouldn't have too much trouble. Consider it as a reading assignment for the weekend."
+    ]
+  }
+  

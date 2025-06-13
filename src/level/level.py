@@ -348,7 +348,7 @@ class Level:
                         self.teleport_entity(entity, new_x, new_y)
                     else:
                         logging.error(f"Entity {entity} cannot move to ({new_x}, {new_y}). Tile is already occupied.")
-                        success = Falseç
+                        success = False
             # After movement is confirmed successful
             if success and entity.__class__.__name__.lower() in ["red", "blue"]:
                 # Check if target position has a chargepad
@@ -505,28 +505,31 @@ class Level:
             ground_entity = target_tile.entities.get('ground')
             skip_ground = False
             if ground_entity:
-                match ground_entity.__class__.__name__.lower():
+                entity_name = ground_entity.__class__.__name__.lower()
+                match entity_name:
                     case "crate":
                         vision = "crate_small" if ground_entity.small else "crate"
                     case "crategen":
                         vision = "crategen_small" if ground_entity.type == "small" else "crategen"
                     case "collectable":
                         skip_ground = True  # Ignore collecables to make them invisible
-                    case "trap":
-                        # If active, return trap, if not return wall, empty or mid_height wall, depending on the tile
-                        if ground_entity.active:
-                            vision = "trap"
-                        else:
-                            if target_tile.is_mid_wall:
-                                vision = "mid_wall"
-                            elif not target_tile.is_path:
-                                vision = "wall"
                     case _:
                         vision = ground_entity.__class__.__name__.lower()
 
             if (not ground_entity or skip_ground) and target_tile.entities.get('tile'):
                 tile_entity = target_tile.entities['tile']
-                vision = tile_entity.__class__.__name__.lower()
+                if tile_entity.__class__.__name__.lower() == "trap":
+                    if tile_entity.active:
+                        vision = "trap"
+                    else:
+                        if target_tile.is_mid_wall:
+                            vision = "mid_wall"
+                        elif not target_tile.is_path:
+                            vision = "wall"
+                        else:
+                            vision = "empty"
+                else:
+                    vision = tile_entity.__class__.__name__.lower()
 
             if vision is None:
                 if target_tile.is_mid_wall:
@@ -535,7 +538,6 @@ class Level:
                     vision = "wall"
                 else:
                     vision = "empty"
-
         return vision
 
 
@@ -819,7 +821,7 @@ class Level:
         """
         success = True
         if entity is not None and (entity.__class__.__name__.lower() == "green" or entity.__class__.__name__.lower() == "blue" or entity.__class__.__name__.lower() == "red"):
-            logging.info(f"Entity {entity} is waiting.")
+            pass
         else:
             logging.error(f"Entity {entity} cannot wait.")
             error_handler.push_error(

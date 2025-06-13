@@ -3,11 +3,6 @@
 import pygame
 import logging
 from typing import Dict
-"""Sound manager class"""
-
-import pygame
-import logging
-from typing import Dict
 
 
 class SoundManager:
@@ -141,13 +136,6 @@ class SoundManager:
         self.muted = not self.muted
         for channel in self.sfx_channels:
             channel.set_volume(0 if self.muted else 1)
-        # Stop music
-        if self.muted:
-            pygame.mixer.music.set_volume(0)
-        else:
-            pygame.mixer.music.set_volume(1)
-            if self.current_music and not self.music_muted:
-                self.play(self.current_music, fade_ms=self.fade_time)
 
 
     def toggle_music(self):

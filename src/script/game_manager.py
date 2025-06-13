@@ -5,7 +5,7 @@ import pygame
 import logging
 from src.level.load_level import load_level
 from src.script.parser import parse_code
-from src.script.ats_nodes import *
+from src.script.ast_nodes import *
 from src.script.interpreter import CoroutineInterpreter
 from src.entities.crate import Crate
 from src.render.error_handler import error_handler, ErrorLevel
@@ -13,7 +13,7 @@ from src.render.sound_manager import sound_manager
 
 LEVEL_FOLDER = "data/level/"  # Folder where the levels are stored
 PLAYER_SCRIPTS = "script/"
-TRAP_DELAY_DEFAULT = 2  # Default delay for traps (in ticks)
+TRAP_DELAY_DEFAULT = 1  # Default delay for traps (in ticks)
 
 
 class GameManager:
@@ -21,7 +21,6 @@ class GameManager:
         self.current_level = None
         self.level_folder = None
         self.is_running = False  # Whether the game is active (robots are moving)
-        self.is_paused = False
         self.frame_count = 0
         self.camera_robot = None  # The robot that the camera is over
         self.trap_delay = TRAP_DELAY_DEFAULT  # Delay for traps
@@ -30,7 +29,6 @@ class GameManager:
         self.success = True  # Whether the level was completed successfully (No errors or warnings happened)
         self.steps_taken = 0  # Number of steps taken in the level (for leaderboard purposes)
         self.completed = False  # Whether the level was completed
-        self.autosave_timer = 0  # Timer for autosaving the script
         self.needs_ui_update = False  # Flag to indicate if the code ui needs to be updated
 
         self.entity_list = {  # Store entities for easy updates
@@ -119,7 +117,6 @@ class GameManager:
                 "collectables": 0,
             }
             self.is_running = False
-            self.is_paused = False
             self.frame_count = 0
             self.update_entities()
             self.current_level.remove_callback = self.remove_from_list  # Set the callback to remove entities from the list
@@ -129,7 +126,6 @@ class GameManager:
             self.success = True  # Reset the success flag
             self.steps_taken = 0  # Reset the steps taken
             self.completed = False  # Reset the completed flag
-            self.autosave_timer = 0  # Reset the autosave timer
         else:
             logging.error(f"Failed to load level: {level_folder}")
 
@@ -138,7 +134,6 @@ class GameManager:
         """Starts the game, enabing robot movement."""
         if self.current_level and self.is_running == False:  # Check if a level is loaded and the game is not already running
             self.is_running = True
-            self.is_paused = False
             self.frame_count = 0
             self.compile_scripts(player_name)
             sound_manager.play("play", fade_ms=500)
@@ -155,18 +150,10 @@ class GameManager:
         sound_manager.play("think", fade_ms=500)
 
 
-    def pause_game(self):
-        """Pauses or resumes the game."""
-        if self.is_running:
-            self.is_paused = not self.is_paused
-            logging.info(f"Game {'paused' if self.is_paused else 'resumed'}.")
-
-
     def exit_to_menu(self):
         """Exits the game to the main menu."""
         logging.debug("Exiting to menu")
         self.is_running = False
-        self.is_paused = False
         self.current_level = None
         logging.info("Exited to menu")
 
@@ -271,6 +258,16 @@ class GameManager:
                     )
                     logging.error(f"Syntax error in {robot.__class__.__name__}'s script: {e}")
                     self.reset_level()
+                except StopIteration as e:
+                    error_handler.push_error(
+                        "Script Error",
+                        f"{robot.__class__.__name__}'s script has finished. No actions were detected.",
+                        ErrorLevel.ERROR
+                    )
+                    logging.error(f"Script for {robot.__class__.__name__} has no movement commands")
+                    self.success = False
+                    self.finished_robots.append(robot)
+                    continue
                 except Exception as e:
                     if robot.script != "":  # Only trigger if the script is not empty
                         error_handler.push_error(
@@ -335,7 +332,7 @@ class GameManager:
         if not self.success or not self.current_level:
             return 0
 
-        base_percentage = 0.5  # Base percentage for score calculation (Max % reduced)
+        base_percentage = 0.5  # Base percentage for score calculation
         picked_collectables = self.completed_objectives["collectables"]
         total_collectables = self.current_level.objectives["collectables"]
         if total_collectables > 0:
@@ -347,14 +344,15 @@ class GameManager:
 
     def tick(self):
         """Updates the game state."""
-        if self.is_running and not self.is_paused:
+        if self.is_running:
             self.frame_count += 1
             if self.frame_count % 30 == 0:  # 60 for Every second, 30 is normal
                 occupied_chargepads = 0
                 active_terminals = 0
                 present_collectables = 0
 
-                # Step 0: Update trap delay (if larger than 0, decrease it, if 0 or under, reset it)
+
+                # Step 0: Update trap delay (if larger than 0, decrease it, if 0 or under, reset it) and toggle traps
                 if self.trap_delay > 0:
                     self.trap_delay -= 1
                 elif self.trap_delay <= 0:
@@ -363,6 +361,25 @@ class GameManager:
                     logging.error("Trap delay is negative. Resetting to default.")
                     self.trap_delay = TRAP_DELAY_DEFAULT
 
+                for tile_entity in self.entity_list['tile']:
+                    # Step 0.1: Toggle traps
+                    if tile_entity.__class__.__name__.lower() == "trap":
+                        if self.trap_delay <= 0:  # If the trap delay is 0, toggle the trap
+                            tile_entity.active = not tile_entity.active
+                            if tile_entity.active:
+                                sound_manager.play("trap_activate")
+                        # Check if a robot is above the trap, if trap is active, fail the level and reset
+                        if tile_entity.active and self.current_level.tiles[tile_entity.y][tile_entity.x].entities['ground'] is not None:
+                            if self.current_level.tiles[tile_entity.y][tile_entity.x].entities['ground'].__class__.__name__.lower() in ["red", "blue"]:
+                                logging.error("Robot stepped on a trap. Level failed.")
+                                error_handler.push_error(
+                                    "Execution Error",
+                                    f"Robot stepped on an active trap. Level failed.",
+                                    ErrorLevel.ERROR
+                                )
+                                self.reset_level()
+                                break
+                
                 # Step 1: Advance robot scripts (green > blue > red)
                 for robot, coroutine in self.coroutines.items():
                     try:
@@ -386,26 +403,7 @@ class GameManager:
                         self.success = False
 
                 # Step 2: Update tile entities
-                for tile_entity in self.entity_list['tile']:
-                    # Step 2.1: Toggle traps
-                    if tile_entity.__class__.__name__.lower() == "trap":
-                        if self.trap_delay <= 0:  # If the trap delay is 0, toggle the trap
-                            tile_entity.active = not tile_entity.active
-                            if tile_entity.active:
-                                sound_manager.play("trap_activate")
-                        # Check if a robot is above the trap, if trap is active, fail the level and reset
-                        if tile_entity.active and self.current_level.tiles[tile_entity.y][tile_entity.x].entities['ground'] is not None:
-                            if self.current_level.tiles[tile_entity.y][tile_entity.x].entities['ground'].__class__.__name__.lower() in ["red", "blue"]:
-                                logging.error("Robot stepped on a trap. Level failed.")
-                                error_handler.push_error(
-                                    "Execution Error",
-                                    f"Robot stepped on an active trap. Level failed.",
-                                    ErrorLevel.ERROR
-                                )
-                                self.reset_level()
-                                break
-
-                    # Step 2.2: Check chargepads
+                    # Step 2.1: Check chargepads
                     if tile_entity.__class__.__name__.lower() == "chargepad":
                         # If a robot is above them
                         entity_above = self.current_level.tiles[tile_entity.y][tile_entity.x].entities['ground']
@@ -413,7 +411,7 @@ class GameManager:
                             if entity_above.__class__.__name__.lower() in ["red", "blue"]:
                                 occupied_chargepads += 1
 
-                    # Step 2.3: Check crate generators
+                    # Step 2.2: Check crate generators
                     if tile_entity.__class__.__name__.lower() == "crategen":
                         # If nothing is above them
                         if self.current_level.tiles[tile_entity.y][tile_entity.x].entities['ground'] is None:
@@ -435,7 +433,7 @@ class GameManager:
                                 tile_entity.crate_count -= 1
                                 sound_manager.play("crate_spawn")  # Play crate spawn sound
                     
-                    # Step 2.4: Check crate deletors
+                    # Step 2.3: Check crate deletors
                     if tile_entity.__class__.__name__.lower() == "cratedel":
                         # If a crate is above them
                         entity_above = self.current_level.tiles[tile_entity.y][tile_entity.x].entities['ground']

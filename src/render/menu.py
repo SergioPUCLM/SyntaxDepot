@@ -195,24 +195,24 @@ class MainMenu:
             case pygame_gui.UI_BUTTON_PRESSED:
                 sound_manager.play("click")
                 match event.ui_element:
-                    case element if element is self.exit_button:
+                    case element if element is self.exit_button:  # Exit the game
                         time.sleep(0.2)
                         self.change_scene(None)
-                    case element if element is self.play_button:
+                    case element if element is self.play_button:  # Move to level select and create player data if it doesn't exist
                         player_data_path = os.path.join(PLAYER_FOLDER, f"{self.player_name}.json")
                         if not os.path.exists(player_data_path):
                             with open(player_data_path, 'w') as f:
                                 json.dump({"highest_level": 0}, f)
                         self.change_scene("level_select")
-                    case element if element is self.name_change_button:
+                    case element if element is self.name_change_button:  # Toggle name change mode
                         self.toggle_name_change()
-                    case element if element is self.mute_button:
+                    case element if element is self.mute_button:  # Toggle mute
                         sound_manager.toggle_mute()
                         self.update_mute_button_image()
-                    case element if element is self.mute_music_button:
+                    case element if element is self.mute_music_button:  # Toggle music mute
                         sound_manager.toggle_music()
                         self.update_mute_music_button_image()
-                    case element if element is self.reset_player_data_button:
+                    case element if element is self.reset_player_data_button:  # Reset player data
                         self.reset_player_data()
             case pygame.QUIT:
                 self.change_scene(None)

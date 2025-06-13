@@ -422,12 +422,34 @@ class GameScreen:
                             case pygame.K_RIGHT | pygame.K_d:
                                 self.game_manager.move_camera("right")
                             case pygame.K_F1:
-                                if not self.language_help_panel.visible:
+                                if (not self.language_help_panel.visible 
+                                    and not self.showing_help 
+                                    and not self.game_manager.is_running 
+                                    and not self.score_overlay_visible):
                                     error_handler.dismiss_all()
                                     self.show_language_help()
                                     
                         if not self.game_manager.is_running:
                             self.update_code_input()
+
+                    elif (event.key == pygame.K_RETURN
+                        and not self.code_input.is_focused
+                        and not self.showing_help
+                        and not self.game_manager.is_running
+                        and not self.score_overlay_visible
+                        and self.game_manager.camera_robot):
+                        self.code_input.focus()
+                        return True
+
+                elif (event.key == pygame.K_RETURN 
+                    and (pygame.key.get_mods() & pygame.KMOD_SHIFT)
+                    and self.code_input.is_focused 
+                    and not self.showing_help 
+                    and not self.game_manager.is_running 
+                    and not self.score_overlay_visible):
+                    self.code_input.unfocus()
+                    self.game_manager.save_script(self.code_input.get_text(), self.player_name)
+                    return True 
 
 
     def show_language_help(self):
@@ -545,8 +567,7 @@ class GameScreen:
             self.game_manager.needs_ui_update = False
 
         # Check for level completion
-        if (self.game_manager.is_running and 
-            not self.game_manager.is_paused and  
+        if (self.game_manager.is_running and  
             self.game_manager.completed):
 
             score = self.game_manager.calculate_score()
@@ -793,8 +814,8 @@ class GameScreen:
     def render_level(self, grid_x, grid_y):        
         camera_x, camera_y = self.game_manager.current_level.get_camera_position()
 
-        half_x = self.tiles_x // 2
-        half_y = self.tiles_y // 2
+        half_x = self.tiles_x // 2  # tiles_x is the number of tiles that fit in the viewport's x-axis
+        half_y = self.tiles_y // 2  # tiles_y is the number of tiles that fit in the viewport's y-axis
 
         for y in range(-half_y, half_y + 1):
             for x in range(-half_x, half_x + 1):
@@ -889,8 +910,8 @@ class GameScreen:
                             self.screen.blit(sprite, (screen_x, screen_y))
 
                 else:  # Void tiles
-                    #pygame.draw.rect(self.screen, (10, 10, 10), (screen_x, screen_y, self.tile_size - 1, self.tile_size - 1))
-                    pygame.draw.rect(self.screen, '#E6DCDA', (screen_x, screen_y, self.tile_size, self.tile_size))
+                    pygame.draw.rect(self.screen, (0, 0, 0), (screen_x, screen_y, self.tile_size - 1, self.tile_size - 1))
+                    #pygame.draw.rect(self.screen, '#E6DCDA', (screen_x, screen_y, self.tile_size, self.tile_size))
 
 
     def resize(self):
@@ -927,6 +948,5 @@ class GameScreen:
         if self.game_manager.current_level:
             last_script = self.code_input.get_text()
             self.game_manager.save_script(last_script, self.player_name)
-        self.game_manager.is_paused = False
         self.game_manager.is_running = False
         self.manager.clear_and_reset()

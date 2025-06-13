@@ -15,9 +15,11 @@ class ErrorLevel(Enum):
     """
     Enum to represent the severity level of an error.
     """
+    # Automatically assigned values
     INFO = auto()
     WARNING = auto()
     ERROR = auto()
+
 
 class ErrorHandler:
     """
@@ -221,7 +223,7 @@ class ErrorHandler:
         if self.current_panel:
             # Auto dismiss logic
             if any(id.endswith("_info") or id.endswith("_warning") for id in self.current_panel.object_ids):
-                if pygame.time.get_ticks() - self._last_show_time > 5000:
+                if pygame.time.get_ticks() - self._last_show_time > 5000:  # 5 seconds
                     self.dismiss_current()
 
             # Check if OK button was pressed

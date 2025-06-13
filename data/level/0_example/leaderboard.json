@@ -1,6 +1,13 @@
 [
     {
         "name": "Sergio",
+        "score": 57,
+        "steps_taken": 75,
+        "collectables": 60,
+        "timestamp": 1749249154
+    },
+    {
+        "name": "Sergio",
         "score": 63,
         "steps_taken": 75,
         "collectables": 60,

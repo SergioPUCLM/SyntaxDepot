@@ -2,16 +2,23 @@
     "messages": [
         "Ah, still with me. Good. Red made it through its first big adventure, walking a few meters. I'm so proud.",
         "Now, Newbie, time to continue our epic journey through the warehouse. The next stop? Still not your sector.",
-        "This corridor is... well, long. And straight. And long. It also curves at some point. You could, of course, write a dozen 'move();' commands again. But im sure your fingers are tired after the last room.",
-        "Time to meet your new best friend: loops.",
-        "Use the syntax: repeat x { move(); }, where x is how many times to repeat the command inside the curly braces.",
+        "This corridor is... well, long. And straight. And long. It also curves at some point. You could, of course, write a dozen 'move();' commands again. But I'm sure your fingers are tired after the last room.",
+        "Time to meet your new best friend: loops. Use the syntax: repeat x { move(); }, where x is how many times to repeat the command inside the curly braces.",
         "Yes, curly braces. No, you can't use parentheses. No, I don't make the rules. Oh wait, I do.",
         "You can put nearly anything inside a loop, not just move();. You can even put more loops inside loops. But let's keep things simple for now.",
-        "Also, you don't need to place everything on one line, have some sense of aesthetic. Use multiple lines if you want, just make sure the loop is properly closed with a '}'.",
+        "Also, you don't need to place everything on one line. Have some sense of aesthetic. Use multiple lines if you want, just make sure the loop is properly closed with a '}'.",
         "Think of it like telling Red: \"Do this thing, x times.\" Much more efficient than babysitting every step.",
-        "Feel free to test, reset, and experiment. It's the one part of this job that won't get you fired for breaking something.",
-        "Go ahead and loop it up. Unless you like repetition that mucch. Hey, idle clicker games exist for a reason, so you do you.",
-        "Im feeling so nice today, I'll even give you an example, don't say I never did anything for you.\n\nrepeat 14 {\n  move();\n}\n\nThis should get you through the first section",
+        "Speaking of efficiency... let's talk about your performance. Specifically, your score.",
+        "In here, every action your bots take, moving, turning, waiting, or others, adds a point to your total. Think of it like golf: the lower the better.",
+        "Loops don't save score directly, we only care about speed, but they help your sanity. The fewer unnecessary steps you write, the better the bots will behave and the easier it is to spot mistakes. Usually.",
+        "Now, don't stress, there's no official target or quota to hit, that would have been too expensive. If the task is completed, that's valid. No one's getting fired... yet.",
+        "But you may have noticed the leaderboard when selecting the task. Management believes that pitting operators against each other encourages 'efficiency'. Personally, I think it's just cheaper than bonuses.",
+        "Of course, if you don't have any operator friends to compete with, you could always try to beat your own score. Solo rivalry is still rivalry, right?",
+        "Oh, and remember those disquettes I asked for in your first assignment? If you collect them, I might... misreport some of your stats to management. A personal thank-you, let's say. The more you find, the more generous I get.",
+        "Anyway. Feel free to test, reset, and experiment. It's the one part of this job that won't get you fired for breaking something.",
+        "Go ahead and loop it up. Unless you like repetition that much. Hey, idle clicker games exist for a reason, so you do you.",
+        "I'm feeling so nice today, I'll even give you an example. Don't say I never did anything for you.\n\nrepeat 14 {\n  move();\n}\n\nThis should get you through the first section.",
         "The rest is up to you. Don't let me down now, Newbie."
     ]
-  }
+}
+  

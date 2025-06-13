@@ -82,7 +82,7 @@ def render_missing_texture(size_x=64, size_y=64, color_on='#ff00dc', color_off='
     # Convert to PIL image
     img = Image.fromarray(pixels, 'RGB')
 
-    # Crop to the exact size requested
+    # Crop to the exact size
     img = img.crop((0, 0, size_x, size_y))
 
     return img

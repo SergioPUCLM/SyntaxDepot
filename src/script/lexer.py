@@ -40,8 +40,8 @@ tokens = [
     'LE',   # Less than or equal operator <=
     'GE',  # Greater than or equal operator >=
     'COMMA',   # Comma ,
-    'QUOTE',   # String delimiter "
-    'COMMENT'  # Comment // or /* */
+    'COMMENT',  # Comment // or /* */
+    'STRING'  # String literal
 ] + list(reserved.values())  # Reserved words are also tokens
 
 
@@ -64,7 +64,6 @@ t_GT = r'>'  # Greater than operator
 t_LE = r'<='  # Less than or equal operator
 t_GE = r'>='  # Greater than or equal operator
 t_COMMA = r','  # Comma
-t_QUOTE = r'"'  # String delimiter
 
 
 def t_NUMBER(t):  # Integer token
@@ -76,6 +75,11 @@ def t_NUMBER(t):  # Integer token
 def t_IDENTIFIER(t):  # Identifier token (Doubles as string definition)
     r'[a-zA-Z_][a-zA-Z_0-9]*'
     t.type = reserved.get(t.value, 'IDENTIFIER')  # Check for reserved words
+    return t
+
+def t_STRING(t):
+    r'\"([^\"\\]|\\.)*\"'  # Matches anything between quotes
+    t.value = t.value[1:-1]  # Strip the quotes
     return t
 
 

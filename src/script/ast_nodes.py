@@ -1,10 +1,10 @@
-"""Definition of the nodes for the ATS tree that will hold the script execution flow in a middle representation."""
+"""Definition of the nodes for the abstract syntax tree tree that will hold the script execution flow in a middle representation."""
 from abc import ABC, abstractmethod
 
 
 class Node(ABC):  # Abstract
     """
-    Base class for all nodes in the ATS tree.
+    Base class for all nodes in the AST tree.
     """
     @abstractmethod
     def __init__(self):

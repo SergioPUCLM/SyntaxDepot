@@ -3,7 +3,7 @@ import ply.yacc as yacc
 from src.script.lexer import tokens
 from src.script.lexer import reserved
 from src.script.lexer import lexer
-from src.script.ats_nodes import *
+from src.script.ast_nodes import *
 
 
 precedence = (
@@ -213,9 +213,9 @@ def p_action(p):
                 raise SyntaxError(f"Unexpected action without argument: {action_type}")
             
 
-def p_object_type(p):  # A string definition, but called like this since it's only used to identify the object type when calling see()
-    '''object_type : QUOTE IDENTIFIER QUOTE'''
-    p[0] = Literal(p[2])
+def p_object_type(p):  # A string definition
+    '''object_type : STRING'''
+    p[0] = Literal(p[1])
 
 
 def p_error(p):
@@ -249,8 +249,6 @@ def p_error(p):
             raise SyntaxError(f"Unexpected identifier '{value}'{col_info}. Did you forget a keyword or a semicolon before it?")
         case "NUMBER":
             raise SyntaxError(f"Unexpected number '{value}'{col_info}. Did you forget to use it in an expression?")
-        case "QUOTE":
-            raise SyntaxError(f"Unexpected quote '{value}'{col_info}. Did you forget to close a string or use quotes correctly?")
         case "COMMENT":
             raise SyntaxError(f"Unexpected comment '{value}'{col_info}. Comments should not interrupt code flow.")
         case "COMMA":

@@ -1,0 +1,14 @@
+{
+    "messages": [
+      "Well, this is cozy. Two bots, two charging pads... and one charmingly claustrophobic corridor.",
+      "Your goal: get Red and Blue to their respective chargers. Simultaneous docking. Synchronized charging. Robot ballet. Whatever you want to call it.",
+      "There's just one problem. The hallway to their destination only fits one at a time, and these bots don't come with turn signals.",
+      "Enter the most delightfully useless useful command: wait();",
+      "Calling wait(); makes a robot pause for exactly one action, no movement, no turning, no chaos. Just... patience, packaged in parentheses.",
+      "You'll need to delay one of them slightly so the other can catch up. Timing is everything.",
+      "Technically, you could delay them by spinning in place like a confused office chair, but that would take more time, and more time means a lower score. Efficiency, remember?",
+      "Use wait(); where it counts. Less drama, more precision. You shouldn't need more than one or two here anyway.",
+      "Alright, let's see if you can line up a perfect robotic duet. And no crashing in the hallway, please. We're still paying off the floor tiles. Even though some tiles look someone stole half of it."
+    ]
+  }
+  
