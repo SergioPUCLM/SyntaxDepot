@@ -41,3 +41,7 @@ thinking and solution optimization.
 7. Implementation of dynamic level loading to facilitate the addition of new levels
 8. Analysis of other educational tools for teaching programming
 9. Study of other serious games focused on programming
+
+# Credits
+Font: PixelOperator by Jayvee Enaguas (Zeh Fernando) – https://www.dafont.com/pixel-operator.font
+Licensed for free personal and commercial use.

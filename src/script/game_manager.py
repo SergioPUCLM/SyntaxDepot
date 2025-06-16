@@ -1,4 +1,11 @@
-"""Game manager class"""
+"""
+Game manager class.
+
+This module is responsible for managing the game state, loading levels, handling robot scripts, and updating the game world.
+
+Classes:
+    GameManager: Manages the game state, including loading levels, handling robot scripts, and updating the game world. 
+"""
 
 import os
 import pygame
@@ -17,7 +24,46 @@ TRAP_DELAY_DEFAULT = 1  # Default delay for traps (in ticks)
 
 
 class GameManager:
+    """
+    GameManager class. This class manages the game state, including loading levels, handling robot scripts, and updating the game world.
+    
+    Attributes:
+        current_level (Level): The currently loaded level.
+        level_folder (str): The folder name of the currently loaded level.
+        is_running (bool): Whether the game is active (robots are moving).
+        frame_count (int): The current frame count.
+        camera_robot (str): The robot that the camera is over.
+        trap_delay (int): Delay for traps.
+        coroutines (dict): Dictionary of coroutines for each robot.
+        finished_robots (list): List of robots that have finished their scripts.
+        success (bool): Whether the level was completed successfully.
+        steps_taken (int): Number of steps taken in the level.
+        completed (bool): Whether the level was completed.
+        needs_ui_update (bool): Flag to indicate if the code UI needs to be updated.
+
+    Methods:
+        remove_from_list(entity): Removes an entity from the entity list.
+        update_entities(): Updates the entity list by scanning the current level for entities.
+        load_level(level_folder): Loads a level from a folder.
+        start_game(player_name): Starts the game, enabling robot movement.
+        reset_level(): Resets the current level, resetting all entities to their original positions and pausing the game.
+        exit_to_menu(): Exits the game to the main menu.
+        move_camera(direction): Moves the camera in a specified direction.
+        update_selected_robot(): Updates the selected robot based on the camera position.
+        save_script(script, player_name): Saves the current script to a file.
+        load_script(player_name): Loads a script from a file.
+        compile_scripts(player_name): Compiles scripts for all robots in the level.
+        check_completion(): Checks if the level is completed based on objectives and robot statuses.
+        calculate_score(): Calculates the score based on completed objectives and steps taken.
+        tick(): Updates the game state, including robot movements and objective checks.
+
+    Example:
+        game_manager = GameManager()
+    """
     def __init__(self):
+        """
+        Initializes the GameManager with default values.
+        """
         self.current_level = None
         self.level_folder = None
         self.is_running = False  # Whether the game is active (robots are moving)
@@ -131,7 +177,12 @@ class GameManager:
 
 
     def start_game(self, player_name):
-        """Starts the game, enabing robot movement."""
+        """
+        Starts the game, enabing robot movement.
+        
+        Args:
+            player_name (str): Name of the player for saving/loading scripts.
+        """
         if self.current_level and self.is_running == False:  # Check if a level is loaded and the game is not already running
             self.is_running = True
             self.frame_count = 0
@@ -142,7 +193,9 @@ class GameManager:
 
 
     def reset_level(self):
-        """Resets the current level, resetting all entities to their original positions and pausing the game."""
+        """
+        Resets the current level, resetting all entities to their original positions and pausing the game.
+        """
         self.needs_ui_update = True
         self.load_level(self.level_folder)
         self.is_running = False  # Stop the game
@@ -151,7 +204,9 @@ class GameManager:
 
 
     def exit_to_menu(self):
-        """Exits the game to the main menu."""
+        """
+        Exits the game to the main menu.
+        """
         logging.debug("Exiting to menu")
         self.is_running = False
         self.current_level = None
@@ -175,7 +230,9 @@ class GameManager:
 
 
     def update_selected_robot(self):
-        """Updates the selected robot."""
+        """
+        Updates the selected robot.
+        """
         camera_x, camera_y = self.current_level.get_camera_position()
         camera_obj = self.current_level.tiles[camera_y][camera_x]
         tile = self.current_level.tiles[camera_y][camera_x]
@@ -196,7 +253,9 @@ class GameManager:
 
 
     def save_script(self, script, player_name):
-        """Save the current script to a file."""
+        """
+        Save the current script to a file.
+        """
         message = "Simulation running...\n\nScript editing is disabled."
         if self.camera_robot and self.is_running == False and script != message:  # Save only if the game is not running
             # Create scripts folder if it doesn't exist
@@ -208,7 +267,9 @@ class GameManager:
 
     
     def load_script(self, player_name):
-        """Load a script from a file."""
+        """
+        Load a script from a file.
+        """
         script = ""
         if self.camera_robot:
             if not os.path.exists(os.path.join(LEVEL_FOLDER, self.level_folder, PLAYER_SCRIPTS)):
@@ -225,6 +286,12 @@ class GameManager:
 
 
     def compile_scripts(self, player_name):
+        """
+        Compiles scripts for all robots in the level.
+
+        Args:
+            player_name (str): Name of the player for saving/loading scripts.
+        """
         present_robots = []
         for robot in self.entity_list['air']:
             if robot.__class__.__name__.lower() == "green":
@@ -289,7 +356,12 @@ class GameManager:
 
     
     def check_completion(self):
-        """Checks if the level is completed."""
+        """
+        Checks if the level is completed.
+
+        Returns:
+            bool: True if the level is completed, False otherwise.
+        """
         if not self.current_level:
             return False  # If the level is not loaded
 
@@ -328,7 +400,12 @@ class GameManager:
 
     
     def calculate_score(self):
-        """Calculates the score based on the completed objectives."""
+        """
+        Calculates the score based on the completed objectives.
+
+        Returns:
+            int: The calculated score.
+        """
         if not self.success or not self.current_level:
             return 0
 
@@ -343,7 +420,11 @@ class GameManager:
 
 
     def tick(self):
-        """Updates the game state."""
+        """
+        Updates the game state. 
+        This method is called every frame to update the game logic, including robot movements, trap toggling, and objective checks.
+        Only triggers a "tick" every 30 frames (1 second at 30 FPS) if the game is running.
+        """
         if self.is_running:
             self.frame_count += 1
             if self.frame_count % 30 == 0:  # 60 for Every second, 30 is normal
@@ -403,6 +484,7 @@ class GameManager:
                         self.success = False
 
                 # Step 2: Update tile entities
+                for tile_entity in self.entity_list['tile']:
                     # Step 2.1: Check chargepads
                     if tile_entity.__class__.__name__.lower() == "chargepad":
                         # If a robot is above them

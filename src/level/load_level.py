@@ -1,4 +1,13 @@
-"""Level loader"""
+"""
+Level loadermodule.
+
+This module is responsible for loading a level from a specified folder.
+It reads the level structure from a JSON file and background map, validates the entities, and creates a Level object.
+It also performs various checks to ensure the level is valid, such as checking for required robots, charge pads, and terminals.
+
+Methods:
+    load_level(folder): Loads a level from the specified folder and returns a Level object or None if an error occurs.
+"""
 
 import os
 import logging

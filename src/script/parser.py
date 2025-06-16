@@ -1,3 +1,8 @@
+"""
+Parser module for the scripting language.
+This module defines the parser for the simple scripting language used in the game.
+"""
+
 import logging
 import ply.yacc as yacc
 from src.script.lexer import tokens

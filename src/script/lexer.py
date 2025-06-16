@@ -1,3 +1,8 @@
+"""
+Lexer module for the scripting language.
+This module defines the lexer for the simple scripting language used in the game.
+"""
+
 import ply.lex as lex
 
 # Reserved words

@@ -1,4 +1,16 @@
-"""Error handler class"""
+"""
+Error handler module.
+This module provides a singleton class to handle error messages and display them using pygame_gui.
+It manages a queue of error messages and displays them in a panel with an icon, title, and message.
+It uses singleton to configure a global error handler instance.
+
+Classes:
+    ErrorLevel (Enum): Enum to represent the severity level of an error.
+    ErrorHandler: Singleton class to handle error messages and display them using pygame_gui.
+
+Objects:
+    error_handler (ErrorHandler): Global instance of the ErrorHandler class.
+"""
 
 import pygame
 import pygame_gui
@@ -14,6 +26,14 @@ ICON_FOLDER = "res/sprites/"
 class ErrorLevel(Enum):
     """
     Enum to represent the severity level of an error.
+    INFO: Informational messages, typically for debugging or informational purposes.
+    WARNING: Warnings that indicate potential issues but do not prevent execution.
+    ERROR: Errors that indicate a problem that prevents normal execution.
+
+    Attributes:
+        INFO (auto): Informational messages.
+        WARNING (auto): Warning messages.
+        ERROR (auto): Error messages that prevent normal execution.
     """
     # Automatically assigned values
     INFO = auto()
@@ -39,10 +59,20 @@ class ErrorHandler:
         _process_queue(): Process the error queue and display the next error if no current panel is active.
         _show_error(title: str, message: str, level: ErrorLevel): Create the error panel with icon, title, and message.
         dismiss_current(): Manually dismiss the current error.
+
+    Example:
+        error_handler = ErrorHandler()
     """
     _instance = None
 
     def __new__(cls):
+        """
+        Singleton instance creation method.
+        Ensures that only one instance of ErrorHandler exists throughout the application.
+
+        Returns:
+            ErrorHandler: The singleton instance of the ErrorHandler class.
+        """
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance.ui_manager = None
@@ -58,7 +88,10 @@ class ErrorHandler:
 
 
     def load_icons(self):
-        """Load icons for different error levels"""
+        """
+        Load icons for different error levels from the specified folder.
+        If an icon is not found, it uses a fallback texture and logs an error message.
+        """
         try:
             self.icons[ErrorLevel.INFO] = pygame.image.load(ICON_FOLDER + "info.png").convert_alpha()
         except FileNotFoundError:
@@ -79,16 +112,34 @@ class ErrorHandler:
 
 
     def set_ui_manager(self, manager: pygame_gui.UIManager):
+        """
+        Set the UI manager for rendering the error panel.
+
+        Args:
+            manager (pygame_gui.UIManager): The UI manager instance to use for rendering.
+        """
         self.ui_manager = manager
 
 
     def push_error(self, title, message, level=ErrorLevel.ERROR):
-        """Queue an error with title, message, and severity level"""
+        """
+        Queue an error with title, message, and severity level.
+        
+        Args:
+            title (str): Title of the error message.
+            message (str): Message content.
+            level (ErrorLevel): Severity level of the error. Defaults to ErrorLevel.ERROR.
+        """
         self.error_queue.append((title, message, level))
         self._process_queue()
 
+
     def _process_queue(self):
-        """Process the error queue and display the next error if no current panel is active"""
+        """
+        Process the error queue and display the next error if no current panel is active.
+        If there is an active panel, it will not display a new error until the current one is dismissed.
+        If there are errors in the queue, it will display the next error panel.
+        """
         if not self.current_panel and self.error_queue and self.ui_manager:
             title, message, level = self.error_queue.pop(0)
             self._show_error(title, message, level)
@@ -99,6 +150,7 @@ class ErrorHandler:
                     sound_manager.play("warning", loops=0)
                 case ErrorLevel.ERROR:
                     sound_manager.play("error", loops=1)
+
 
     def _show_error(self, title, message, level):
         """
@@ -205,7 +257,9 @@ class ErrorHandler:
 
 
     def dismiss_current(self):
-        """Manually dismiss the current error"""
+        """
+        Manually dismiss the current error
+        """
         if self.current_panel:
             self.current_panel.kill()
             self.current_panel = None
@@ -213,13 +267,22 @@ class ErrorHandler:
 
 
     def dismiss_all(self):
-        """Manually dismiss all errors"""
+        """
+        Manually dismiss all errors
+        """
         while self.current_panel:
             self.dismiss_current()
         self.error_queue.clear()
 
 
     def update(self, time_delta, events):
+        """
+        Update the error handler, checking for events and auto-dismiss logic.
+
+        Args:
+            time_delta (float): Time since the last update.
+            events (list): List of pygame events to process.
+        """
         if self.current_panel:
             # Auto dismiss logic
             if any(id.endswith("_info") or id.endswith("_warning") for id in self.current_panel.object_ids):

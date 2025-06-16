@@ -1,3 +1,11 @@
+"""
+Path setup module.
+This module sets up the paths for the imports in the project.
+Allows importing modules from 'src/', 'data/', and 'res/' directories.
+
+Example: from src.module_name import function_name
+"""
+
 import os
 import sys
 
@@ -11,3 +19,4 @@ def setup_paths():
     sys.path.append(os.path.join(project_root, "src"))  # Add 'src/'
     sys.path.append(os.path.join(project_root, "data"))  # Add 'data/'
     sys.path.append(os.path.join(project_root, "res"))  # Add 'res/'
+    

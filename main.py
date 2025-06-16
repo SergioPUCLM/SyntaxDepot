@@ -1,4 +1,24 @@
-"""Main File"""
+"""
+Main module.
+Starts the game and handles the main loop.
+
+This program was developed as part of the bachelor's dissertation in Computer Engineering at the University of Castille-La Mancha (UCLM), Spain.
+
+Developed by: Sergio Pozuelo Martin-Consuegra
+Supervised by: Jose Jesus Castro Sanchez
+
+Thanks to:
+- Jayvee Enaguas (Zeh Fernando): Pixel Operator font (https://www.dafont.com/pixel-operator.font)
+- Alberto Barrais Bellerin: Testing and general feedback
+- Manuel Cano Garcia: User interface feedback
+- Alejandro Cañas Borreguero: General feedback
+- Francisco Javier Luna: User interface feedback
+- Luis Benito Lopez: General feedback
+- Daniel Ayuso del Campo: General feedback
+- Valeria Samani Padilla Cuba: Game art ideas
+
+May this game provide as much enjoyment to you as it did to me while developing it.
+"""
 
 import sys
 import os
@@ -74,7 +94,7 @@ def main():
     manager.get_theme().load_theme("./theme.json")  # Load the theme
 
     pygame.mixer.init(channels=17)  # Initialize the mixer with 17 channels
-    pygame.mixer.set_num_channels(17)  # Channel 0 = music, 1- 16 = SFX
+    pygame.mixer.set_num_channels(17)  # Channel 0 = music, 1 - 16 = SFX
     sound_manager.initialize()
 
     error_handler.set_ui_manager(manager)  # Set the UI manager for the error handler
@@ -161,7 +181,14 @@ def main():
 
     # Scene management
     def change_scene(new_scene, level_name=None, level_folder=None):
-        """Changes the current scene and resets UI elements."""
+        """
+        Changes the current scene and resets UI elements.
+        
+        Args:
+            new_scene (str): The name of the new scene to switch to.
+            level_name (str, optional): The name of the level to load in the game scene.
+            level_folder (str, optional): The folder containing the level data.
+        """
         nonlocal current_scene, manager, running
 
         logging.debug(f"Switching to scene: {new_scene}")
@@ -245,5 +272,8 @@ def main():
     pygame.quit()
 
 if __name__ == "__main__":
+    """
+    Entry point of the game.
+    """
     main()
     

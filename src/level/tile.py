@@ -10,8 +10,40 @@ class Tile:
     Tile class, representing a single tile in the level. It can contain up to 3 entities on different heights.
     Unless otherwise specified, all tiles are "walls" and have colision with anything (except the camera).
     However, the wall can also be classified as a "mid-height wall", which allows air entities to pass through it.
+
+    Atributes:
+        entities (dict): Dictionary containing entities on the tile at different heights.
+            - 'tile': Entity on the tile (Not the same as ground, this defines what the floor is made of)
+            - 'ground': Entity on the ground
+            - 'air': Entity in the air
+            - 'camera': Entity on the camera
+        x (int): X position of the tile in the level.
+        y (int): Y position of the tile in the level.
+        image (pygame.Surface): Image representing the tile.
+        is_path (bool): Whether this tile is a path or not.
+        is_mid_wall (bool): Whether this tile is a mid-height wall or not.
+
+    Methods:
+        __init__(x, y, image): Initializes a Tile instance.
+        __str__(): String representation of the tile.
+        set_path(force=False): Marks this tile as a path.
+        set_mid_wall(force=False): Marks this tile as a mid-height wall.
+        set_wall(): Marks this tile as a wall.
+        add_entity(entity, height, force=False): Adds an entity to the tile at the specified height.
+        remove_entity(height): Removes the entity from the tile at the specified height.
+
+    Example:
+        tile = Tile(0, 0, 'path/to/image.png')
     """
     def __init__(self, x, y, image):
+        """
+        Initializes a Tile instance.
+
+        Args:
+            x (int): X position of the tile in the level.
+            y (int): Y position of the tile in the level.
+            image (str or pygame.Surface): Path to the tile image or a pygame Surface object.
+        """
         self.entities = {
             'tile': None,  # Entity on the tile (Not the same as ground, this defines what the floor is made of)
             'ground': None,  # Entity on the ground

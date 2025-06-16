@@ -17,7 +17,44 @@ DATA_FILE = "data/options.json"
 
 
 class MainMenu:
+    """
+    Main Menu Scene Class.
+    This class handles the main menu renderer of the game.
+    It initializes the UI elements, handles events, and manages the player's name.
+
+    Attributes:
+        screen (pygame.Surface): The screen to render the menu on.
+        manager (pygame_gui.UIManager): The UI manager for handling UI elements.
+        change_scene (function): Function to change the current scene.
+        name_changing (bool): Flag to indicate if the player is changing their name.
+        player_name (str): The name of the player loaded from options file.
+
+    Methods:
+        __init__(screen, manager, change_scene): Initializes the main menu scene.
+        create_ui(): Creates and positions UI elements dynamically.
+        handle_events(event): Handles the events in this scene.
+        load_player_name(): Loads the last player name from options file.
+        toggle_name_change(): Toggles between name display and name change mode.
+        save_player_name(name): Saves the player name to options file.
+        reset_player_data(): Resets player data to default values.
+        update(time_delta): Updates the UI manager, therefore refreshing the screen.
+        render(): Renders the UI elements on the screen.
+        resize(): Recreates UI elements on window resize to achieve responsive design.
+        destroy(): Destroys the UI manager and its elements.
+
+    Example:
+        main_menu = MainMenu(screen, manager, change_scene_function)
+    """
+
     def __init__(self, screen, manager, change_scene):
+        """
+        Initializes the main menu scene.
+
+        Args:
+            screen (pygame.Surface): The screen to render the menu on.
+            manager (pygame_gui.UIManager): The UI manager for handling UI elements.
+            change_scene (function): Function to change the current scene.
+        """
         self.screen = screen
         self.manager = manager
         self.change_scene = change_scene
@@ -49,7 +86,9 @@ class MainMenu:
 
 
     def create_ui(self):
-        """Creates and positions UI elements dynamically."""
+        """
+        Creates and positions UI elements dynamically.
+        """
         width, height = self.screen.get_size()
 
         # Title label
@@ -133,6 +172,9 @@ class MainMenu:
         )
 
     def update_mute_button_image(self):
+        """
+        Updates the mute button image based on the sound manager's muted state.
+        """
         # Scale the icon to fit the button
         icon_size = (int(self.mute_button.rect.width * 0.8), int(self.mute_button.rect.height * 0.8))
         current_icon = self.unmute_icon_surface if int(sound_manager.muted) == 0 else self.mute_icon_surface
@@ -161,6 +203,9 @@ class MainMenu:
 
 
     def update_mute_music_button_image(self):
+        """
+        Updates the mute music button image based on the sound manager's music muted state.
+        """
         # Scale the icon to fit the button
         icon_size = (int(self.mute_music_button.rect.width * 0.8), int(self.mute_music_button.rect.height * 0.8))
         current_icon = self.mute_music_icon_surface if int(sound_manager.music_muted) == 0 else self.unmute_music_icon_surface
@@ -190,7 +235,12 @@ class MainMenu:
 
 
     def handle_events(self, event):
-        """Handles the events in this scene."""
+        """
+        Handles the events in this scene.
+
+        Args:
+            event (pygame.event.Event): The event to handle.
+        """
         match event.type:
             case pygame_gui.UI_BUTTON_PRESSED:
                 sound_manager.play("click")
@@ -221,7 +271,12 @@ class MainMenu:
     
 
     def load_player_name(self):
-        """Load the last player name from options file"""
+        """
+        Load the last player name from options file
+        
+        Returns:
+            str: The last player name or "Player" if not found or error occurs.
+        """
         try:
             options_path = Path(DATA_FILE)
             if options_path.exists():
@@ -266,7 +321,12 @@ class MainMenu:
 
 
     def save_player_name(self, name):
-        """Save the player name to options file"""
+        """
+        Save the player name to options file.
+        
+        Args:
+            name (str): The player name to save.
+        """
         try:
             options_path = Path(DATA_FILE)
             data = {}
@@ -284,7 +344,9 @@ class MainMenu:
 
 
     def reset_player_data(self):
-        """Resets player data to default values"""
+        """
+        Resets player data to default values.
+        """
         try:
             # Look in the player folder for any files named "player_name.json"
             file = f"{self.player_name}.json"
@@ -326,3 +388,4 @@ class MainMenu:
         """
         logging.debug("Destroying main menu scene")
         self.manager.clear_and_reset()
+        

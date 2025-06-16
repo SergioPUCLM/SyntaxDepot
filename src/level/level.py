@@ -1,4 +1,10 @@
-"""Level class"""
+"""
+Level class.
+This module defines the structure of a level in-game, including how the objectives and physical representation are handled.
+
+Classes:
+    Level: Defines the level structure, including tiles, objectives, and methods for entity interaction.
+"""
 
 import os
 import logging
@@ -43,6 +49,15 @@ class Level:
         wait(self, entity): Waits for one turn.
     """
     def __init__(self, width, height, background_image, remove_callback=None):
+        """
+        Initializes the level with the given width, height, and background image.
+
+        Args:
+            width (int): Width of the level in tiles.
+            height (int): Height of the level in tiles.
+            background_image (str): Path to the background image file.
+            remove_callback (function, optional): Callback function to remove entities from the level. Defaults to None.
+        """
         self.tile_size = 64
         self.width = width
         self.height = height

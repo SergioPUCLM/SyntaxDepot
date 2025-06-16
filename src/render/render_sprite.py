@@ -1,3 +1,12 @@
+"""
+Sprite loading and rendering module.
+This module provides functionality to load and render the sprites. 
+
+Methods:
+    load_sprite(sprite_name, tile_size, color_on='#ff00dc', color_off='#010001', entity=None): Loads a sprite from the given name. If the file is missing, uses a fallback texture.
+"""
+
+
 import os
 import pygame
 import logging

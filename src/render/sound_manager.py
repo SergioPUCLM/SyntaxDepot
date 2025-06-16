@@ -1,4 +1,14 @@
-"""Sound manager class"""
+"""
+Sound manager class.
+Handles registration, loading, and playing sound effects and music.
+This module uses pygame's mixer to manage sound effects and music in the game.
+
+Classes:
+    SoundManager: Singleton class to manage sound effects and music.
+
+Objects:
+    sound_manager: Global instance of the SoundManager class.
+"""
 
 import pygame
 import logging
@@ -18,10 +28,30 @@ class SoundManager:
         muted (bool): Flag to indicate if sounds are muted.
         sounds (dict): Dictionary to store loaded sound effects.
         music (dict): Dictionary to store music file paths.
+
+    Methods:
+        initialize(): Initialize the sound manager and set up channels.
+        load_sound(name, path, is_music=False): Load a sound file and store it.
+        play(name, loops=0, volume=1.0, fade_ms=0): Play a sound by name.
+        stop_music(fade_ms=0): Stop the music with optional fade out.
+        stop_all(): Stop all sounds.
+        stop_sfx(): Stop all sound effects.
+        toggle_mute(): Toggle mute on or off for sound effects.
+        toggle_music(): Toggle music on or off (independent of sound effects).
+        set_fade_time(fade_time): Set the default fade time for music transitions.
+
+    Example:
+        sound_manager = SoundManager()
     """
     _instance = None
     
     def __new__(cls):
+        """
+        Ensure only one instance of SoundManager exists.
+
+        Returns:
+            SoundManager: The singleton instance of the sound manager.
+        """
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance._initialized = False
@@ -29,6 +59,9 @@ class SoundManager:
 
 
     def __init__(self):
+        """
+        Initialize the sound manager.
+        """
         if not self._initialized:
             self.music_channel = None
             self.sfx_channels = []
@@ -43,7 +76,10 @@ class SoundManager:
 
 
     def initialize(self):
-        """Initialize the sound manager and set up channels."""
+        """
+        Initialize the sound manager and set up channels.
+        This should be called after pygame is initialized and the mixer is created.
+        """
         if not pygame.mixer.get_init():
             raise RuntimeError("pygame.mixer not initialized")
         self.music_channel = pygame.mixer.Channel(0)
@@ -56,6 +92,11 @@ class SoundManager:
     def load_sound(self, name, path, is_music=False):
         """
         Load a sound file and store it in the sound manager.
+
+        Args:
+            name (str): The name to identify the sound.
+            path (str): The file path to the sound file.
+            is_music (bool): If True, treat this as music; otherwise, as a sound effect.
         """
         try:
             if is_music:
@@ -113,33 +154,43 @@ class SoundManager:
 
 
     def stop_music(self, fade_ms=0):
-        """Stop the music with optional fade out."""
+        """
+        Stop the music with optional fade out.
+        """
         pygame.mixer.music.fadeout(fade_ms)
         self.current_music = None
 
 
     def stop_all(self):
-        """Stop all sounds."""
+        """
+        Stop all sounds.
+        """
         self.stop_music(self.fade_time)
         for channel in self.sfx_channels:
             channel.stop()
 
 
     def stop_sfx(self):
-        """Stop all sound effects."""
+        """
+        Stop all sound effects.
+        """
         for channel in self.sfx_channels:
             channel.stop()
 
 
     def toggle_mute(self):
-        """Toggle mute on or off for sound effects."""
+        """
+        Toggle mute on or off for sound effects.
+        """
         self.muted = not self.muted
         for channel in self.sfx_channels:
             channel.set_volume(0 if self.muted else 1)
 
 
     def toggle_music(self):
-        """Toggle music on or off (independent of sound effects)."""
+        """
+        Toggle music on or off.
+        """
         self.music_muted = not self.music_muted
         if self.music_muted:
             pygame.mixer.music.set_volume(0)
@@ -150,7 +201,12 @@ class SoundManager:
 
 
     def set_fade_time(self, fade_time):
-        """Set the default fade time for music transitions."""
+        """
+        Set the default fade time for music transitions.
+        
+        Args:
+            fade_time (int): Fade time in milliseconds.
+        """
         self.fade_time = fade_time
 
 

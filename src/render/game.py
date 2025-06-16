@@ -1,3 +1,12 @@
+"""
+Game scene module.
+This module defines the GameScreen class, which represents the main game screen
+
+Classes:
+    GameScreen: The main game screen where the player can interact with the level, edit scripts, and control robots.
+"""
+
+
 import pygame
 import pygame_gui
 import logging
@@ -15,7 +24,52 @@ SPRITE_FOLDER = "res/sprites"
 HELP_FILE = "data/language_help.html"
 
 class GameScreen:
+    """
+    The main game screen where the player can interact with the level, edit scripts, and control robots.
+    This class handles the UI, and rendering of the game level.
+    
+    Attributes:
+        screen (pygame.Surface): The main display surface.
+        manager (pygame_gui.UIManager): The UI manager for handling UI elements.
+        change_scene (function): Function to change the current scene.
+        game_manager (GameManager): The game manager instance handling game logic.
+        level_name (str): The name of the current level.
+        level_folder (str): The folder where the level data is stored.
+
+    Methods:
+        __init__(screen, manager, change_scene, game_manager, level_name, level_folder): Initializes the game screen with the given parameters.
+        create_ui(): Creates the UI elements for the game screen.
+        get_player_name(): Retrieves the player's name from the options file.
+        handle_events(event): Handles user input events such as button presses and key presses.
+        show_language_help(): Displays a popup with language reference help.
+        display_instructions(): Displays level instructions if they exist.
+        show_current_message(): Shows the current message in the instruction dialogue sequence.
+        hide_instructions(): Hides the instruction dialogue.
+        update_code_input(): Updates the code input field with the current script for the selected robot.
+        update(time_delta): Updates the game state and UI based on the time delta since the last frame.
+        render(): Renders the game screen and UI elements.
+        update_objectives(): Updates the objective list based on the current level's objectives.
+        show_score_popup(score): Displays a popup with the score submission interface after completing a level.
+        hide_score_popup(): Hides the score submission popup.
+        save_score_to_leaderboard(score): Saves the player's score to the leaderboard for this level.
+        render_level(grid_x, grid_y): Renders the game level tiles and entities within the viewport.
+
+    Example:
+        game_screen = GameScreen(screen, manager, change_scene, game_manager, "level_1", "levels/level_1")
+    """
+
     def __init__(self, screen, manager, change_scene, game_manager, level_name, level_folder):
+        """
+        Initializes the game screen with the given parameters.
+
+        Args:
+            screen (pygame.Surface): The main display surface.
+            manager (pygame_gui.UIManager): The UI manager for handling UI elements.
+            change_scene (function): Function to change the current scene.
+            game_manager (GameManager): The game manager instance handling game logic.
+            level_name (str): The name of the current level.
+            level_folder (str): The folder where the level data is stored.
+        """
         self.screen = screen
         self.manager = manager
         self.change_scene = change_scene
@@ -57,7 +111,10 @@ class GameScreen:
 
 
     def create_ui(self):
-        """Creates the UI elements for the game screen."""
+        """
+        Creates the UI elements for the game screen.
+        Initializes the layout based on the screen size.
+        """
         width, height = self.screen.get_size()
         sidebar_width = int(width * 0.35)
         popup_width = min(500, width - 100)
@@ -313,7 +370,9 @@ class GameScreen:
 
 
     def calculate_viewport(self):
-        """Calculate how many tiles fit based on the available game area."""
+        """
+        Calculate how many tiles fit based on the available game area.
+        """
         width, height = self.screen.get_size()
 
         # Exclude the side menu width
@@ -333,7 +392,12 @@ class GameScreen:
 
 
     def get_player_name(self):
-        """Get the player's name from the options file."""
+        """
+        Get the player's name from the options file.
+
+        Returns:
+            str: The player's name, or "Anonymous" if not found or invalid.
+        """
         try:
             with open(OPTIONS_FILE, 'r') as f:
                 data = json.load(f)
@@ -350,6 +414,15 @@ class GameScreen:
 
 
     def handle_events(self, event):
+        """
+        Handle user input events such as button presses and key presses.
+
+        Args:
+            event (pygame.event.Event): The event to handle.
+
+        Returns:
+            bool: True if the event was handled, False otherwise.
+        """
         match event.type:
             case pygame.QUIT:
                 self.game_manager.save_script(self.code_input.get_text(), self.player_name)
@@ -453,7 +526,9 @@ class GameScreen:
 
 
     def show_language_help(self):
-        """Show language reference help in a popup window."""
+        """
+        Show language reference help in a popup window.
+        """
         # Load help content from file
         try:
             with open(HELP_FILE, 'r') as f:
@@ -480,7 +555,9 @@ class GameScreen:
 
 
     def display_instructions(self):
-        """Display level instructions if they exist."""
+        """
+        Display level instructions if they exist.
+        """
         try:
             explanation_file = os.path.join("data", "level", self.level_name, "dialogue.json")
             if not os.path.exists(explanation_file):
@@ -516,7 +593,9 @@ class GameScreen:
 
 
     def show_current_message(self):
-        """Show the current message in the dialogue sequence."""
+        """
+        Show the current message in the dialogue sequence.
+        """
         if not hasattr(self, 'explanation_messages'):
             return
             
@@ -535,7 +614,9 @@ class GameScreen:
 
 
     def hide_instructions(self):
-        """Hide the instruction dialogue."""
+        """
+        Hide the instruction dialogue.
+        """
         self.dialogue_panel.hide()
         self.instructor_image.hide()
         self.dialogue_text.hide()
@@ -551,6 +632,10 @@ class GameScreen:
                     
 
     def update_code_input(self):
+        """
+        Update the code input field with the current script for the selected robot.
+        If no robot is selected, disable the input and show a message.
+        """
         if self.game_manager.camera_robot:
             self.code_input.enable()
             self.code_input.set_text(self.game_manager.load_script(self.player_name))
@@ -560,6 +645,12 @@ class GameScreen:
             
 
     def update(self, time_delta):
+        """
+        Update the game state and UI based on the time delta since the last frame.
+
+        Args:
+            time_delta (float): The time in seconds since the last update.
+        """
         self.manager.update(time_delta)
         # Update the code ui
         if self.game_manager.needs_ui_update:
@@ -594,7 +685,9 @@ class GameScreen:
         
 
     def render(self):
-        """Render the game screen."""
+        """
+        Render the game screen.
+        """
         if not self.game_manager.current_level:
             self.change_scene("level_select")
             logging.error("No level loaded, returning to level select")
@@ -682,7 +775,12 @@ class GameScreen:
                 )
 
     def show_score_popup(self, score):
-        """Show the score submission popup"""
+        """
+        Show the score submission popup.
+
+        Args:
+            score (int): The score to display in the popup.
+        """
         error_handler.dismiss_all()  # Close all error popups
         self.score_overlay_visible = True
         self.last_score = score
@@ -710,7 +808,9 @@ class GameScreen:
 
 
     def hide_score_popup(self):
-        """Hide the score popup"""
+        """
+        Hide the score popup.
+        """
         self.score_overlay_visible = False
         self.score_popup.hide()
         self.score_title.hide()
@@ -726,7 +826,12 @@ class GameScreen:
 
 
     def save_score_to_leaderboard(self, score):
-        """Save score to the level's leaderboard with robust error handling"""
+        """
+        Save score to the level's leaderboard with robust error handling.
+
+        Args:
+            score (int): The score to save.
+        """
         leaderboard_file = os.path.join("data", "level", self.level_name, "leaderboard.json")
         leaderboard_dir = os.path.dirname(leaderboard_file)
         
@@ -811,7 +916,14 @@ class GameScreen:
                 logging.critical(f"Failed to create empty leaderboard file: {e2}")
 
             
-    def render_level(self, grid_x, grid_y):        
+    def render_level(self, grid_x, grid_y):
+        """
+        Render the current level tiles and entities within the viewport.
+
+        Args:
+            grid_x (int): The x-coordinate of the grid's top-left corner.
+            grid_y (int): The y-coordinate of the grid's top-left corner.
+        """      
         camera_x, camera_y = self.game_manager.current_level.get_camera_position()
 
         half_x = self.tiles_x // 2  # tiles_x is the number of tiles that fit in the viewport's x-axis
@@ -915,6 +1027,9 @@ class GameScreen:
 
 
     def resize(self):
+        """
+        Resize the game scene when the window size changes.
+        """
         last_script = self.code_input.get_text()  # Preserve the script
         help_was_shown = self.showing_help
         current_message_idx = getattr(self, 'current_message_index', 0)
@@ -943,6 +1058,9 @@ class GameScreen:
 
 
     def destroy(self):
+        """
+        Clean up the game scene before switching to another scene.
+        """
         logging.debug("Destroying game scene")
         # Save last script before that
         if self.game_manager.current_level:

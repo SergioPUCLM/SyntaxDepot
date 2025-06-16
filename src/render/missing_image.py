@@ -1,4 +1,13 @@
-"""Missing image renderer."""
+"""
+Missing image renderer module.
+Creates a replacement image for missing textures.
+
+Methods:
+    - missing_texture_pygame: Returns a pygame surface with the missing texture.
+    - missing_texture_png: Returns a PNG image bytes with the missing texture.
+    - render_missing_texture: Generates an image with a checkerboard pattern for missing textures.
+    - hex_2_rgb: Converts a hex color value string to an RGB tuple.
+"""
 
 import logging
 import pygame

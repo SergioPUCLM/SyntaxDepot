@@ -1,4 +1,11 @@
-"""Level select renderer"""
+"""
+Level select renderer.
+This module provides a renderer for the level selection scene in a game.
+It displays a grid of levels with buttons, a sidebar for leaderboard info, and allows players to select levels to play.
+
+Classes:
+    LevelSelect: Renderer for the level selection scene.
+"""
 
 import pygame
 import pygame_gui
@@ -15,7 +22,46 @@ COLUMNS = 10  # Number of columns in the grid
 
 
 class LevelSelect:
+    """
+    Renderer for the level selection scene.
+    Displays a grid of levels with buttons, a sidebar for leaderboard info, and allows players to select levels to play.
+
+    Attributes:
+        screen (pygame.Surface): The main display surface.
+        manager (pygame_gui.UIManager): UI manager for handling UI elements.
+        change_scene (function): Function to change scenes.
+        game_manager (GameManager): Instance of the game manager for loading levels.
+        buttons (list): List of level buttons.
+        selected_level (str): Currently selected level folder name.
+        level_data (dict): Dictionary storing level names and leaderboard info.
+        player_level (int): Player's highest level from JSON file.
+
+    Methods:
+        create_ui(): Initializes the UI elements for level selection.
+        handle_events(event): Handles user interactions with the UI.
+        select_level(folder): Highlights the selected level and updates the sidebar with leaderboard info.
+        load_player_level(): Loads the player's highest level from a JSON file.
+        load_leaderboard(filepath): Loads leaderboard data from a JSON file.
+        is_valid_level(folder_name): Checks if a folder name follows the correct format and contains necessary files.
+        update(time_delta): Updates the UI manager.
+        render(): Draws the UI elements on the screen.
+        resize(): Recreates UI elements on window resize.
+        destroy(): Clears UI elements when exiting the scene.
+
+    Example:
+        level_select = LevelSelect(screen, manager, change_scene, game_manager)
+    """
+
     def __init__(self, screen, manager, change_scene, game_manager):
+        """
+        Initializes the LevelSelect renderer.
+
+        Args:
+            screen (pygame.Surface): The main display surface.
+            manager (pygame_gui.UIManager): UI manager for handling UI elements.
+            change_scene (function): Function to change scenes.
+            game_manager (GameManager): Instance of the game manager for loading levels.
+        """
         self.screen = screen
         self.manager = manager
         self.change_scene = change_scene
@@ -29,7 +75,10 @@ class LevelSelect:
 
 
     def create_ui(self):
-        """Scans levels and positions buttons in a scrollable grid layout that adapts to screen size."""
+        """
+        Scans levels and positions buttons in a scrollable grid layout that adapts to screen size.
+        Initializes the UI elements for level selection, including buttons, labels, and sidebars.
+        """
         self.manager.clear_and_reset()
         self.buttons.clear()
 
@@ -160,7 +209,12 @@ class LevelSelect:
 
     
     def load_player_level(self):
-        """Loads player highest level from JSON. Creates file if missing."""
+        """
+        Loads player highest level from JSON. Creates file if missing.
+
+        Returns:
+            int: Player's highest level.
+        """
         player_name = "Anonymous"  # Default player name
         player_level = 1  # Default level
 
@@ -195,7 +249,12 @@ class LevelSelect:
 
 
     def handle_events(self, event):
-        """Handles UI interactions."""
+        """
+        Handles UI interactions.
+
+        Args:
+            event (pygame.event.Event): The event to handle.
+        """
         match event.type:
             case pygame_gui.UI_BUTTON_PRESSED:
                 sound_manager.play("click")
@@ -269,7 +328,15 @@ class LevelSelect:
     
 
     def is_valid_level(self, folder_name):
-        """Checks if the folder name follows the correct format (X_Name)."""
+        """
+        Checks if the folder name follows the correct format (X_Name).
+        
+        Args:
+            folder_name (str): Name of the folder to validate.
+
+        Returns:
+            bool: True if valid, False otherwise.
+        """
         success = True
         if not folder_name.count("_") == 1 and folder_name.split("_")[0].isdigit():
             success = False
@@ -283,25 +350,34 @@ class LevelSelect:
 
 
     def update(self, time_delta):
-        """Updates the UI manager."""
+        """
+        Updates the UI manager.
+        
+        Args:
+            time_delta (float): Time since the last update in seconds.
+        """
         self.manager.update(time_delta)
 
 
     def render(self):
-        """Draws the UI elements."""
+        """
+        Draws the UI elements.
+        """
         self.screen.fill((0, 0, 0))
         self.manager.draw_ui(self.screen)
 
 
     def resize(self):
-        """Recreates UI elements on window resize."""
+        """
+        Recreates UI elements on window resize.
+        """
         self.manager.clear_and_reset()
         self.create_ui()
     
 
     def destroy(self):
-        """Clears UI elements."""
+        """
+        Clears UI elements.
+        """
         logging.debug("Destroying level select scene")
         self.manager.clear_and_reset()
-
-

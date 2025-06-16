@@ -1,4 +1,11 @@
-"""Coroutine Interpreter class"""
+"""
+Coroutine Interpreter module.
+This module defines the CoroutineInterpreter class, which is responsible for executing the scripts.
+
+Classes:
+    CoroutineInterpreter: The main interpreter class for executing scripts in a coroutine-like manner.
+"""
+
 from src.script.ast_nodes import *
 
 
@@ -7,10 +14,12 @@ class CoroutineInterpreter:
     Coroutine Interpreter for executing a script in a coroutine-like manner.
     This interpreter is responsible for executing the script using a stack of environments
     to manage local variables and function calls.
+
     Attributes:
         level (Level): The level where actions should be executed.
         entity (Entity): The entity (or robot) that will perform the actions.
         env_stack (list): Stack of environments for local variables and function calls.
+
     Methods:
         __init__(self, level, entity): Initializes the CoroutineInterpreter.
         push_env(): Pushes a new environment onto the stack.
@@ -22,6 +31,9 @@ class CoroutineInterpreter:
         run(program_node): Executes the program node.
         _eval(node): Evaluates the AST node and dispatches to appropriate method.
         _eval_*(node): Evaluates specific types of nodes (e.g., Program, FunctionDeclaration, Assignment, etc.).
+
+    Example:
+        interpreter = CoroutineInterpreter(level, entity)
     """
 
     def __init__(self, level, entity):
@@ -68,8 +80,11 @@ class CoroutineInterpreter:
     def set_var(self, name, value):
         """
         Set a variable in the current environment.
-        If the variable is not found in the current environment,
-        it will be created.
+        If the variable is not found in the current environment, it will be created.
+
+        Args:
+            name (str): The name of the variable to set.
+            value: The value to assign to the variable.
         """
         self.current_env()[name] = value
 
@@ -82,9 +97,6 @@ class CoroutineInterpreter:
 
         Args:
             name (str): The name of the variable to retrieve.
-
-        Raises:
-            RuntimeError: If the variable is not found in any environment.
 
         Returns:
             The value of the variable.
@@ -138,8 +150,8 @@ class CoroutineInterpreter:
         Args:
             node (Node): The AST node to evaluate.
 
-        Yields:
-            The result of the evaluation.
+        Returns:
+            The yielded value from the evaluation of a specific node type.
         """
 
         if node is None:
@@ -215,9 +227,6 @@ class CoroutineInterpreter:
 
         Args:
             node (FunctionDeclaration): The function declaration node to evaluate.
-
-        Yields:
-            None
         """
         self.set_var(node.name, {
             'params': node.param,
@@ -321,8 +330,8 @@ class CoroutineInterpreter:
         Args:
             node (Action): The action node to evaluate.
 
-        Yields:
-            The result of the action execution.
+        Returns:
+            The yielded result of the action execution.
         """
         action_map = {
         "move": lambda args: self.level.move(self.entity),
@@ -403,6 +412,7 @@ class CoroutineInterpreter:
 
         Args:
             node (RepeatLoop): The repeat loop node to evaluate.
+
         Yields:
             The results of the evaluation of the body.
         """
@@ -478,13 +488,13 @@ class CoroutineInterpreter:
         Args:
             node (ObjectType): The object type node to evaluate.
 
-        Yields:
+        Returns:
             The name of the object type.
         """
         return node.name  # it's just a string identifier
 
 
-    def _eval_Variable(self, node):#MODIFIED
+    def _eval_Variable(self, node):
         """
         Evaluate a variable node by looking up its value in the current environment.
         This method retrieves the value of the variable from the environment.
@@ -492,8 +502,8 @@ class CoroutineInterpreter:
         Args:
             node (Variable): The variable node to evaluate.
             
-        Yields:
+        Returns:
             The value of the variable.
         """
         value = self.get_var(node.name)
-        return value # CHANGED FROM YIELD TO RETURN
+        return value
