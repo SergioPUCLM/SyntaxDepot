@@ -45,3 +45,6 @@ thinking and solution optimization.
 # Credits
 Font: PixelOperator by Jayvee Enaguas (Zeh Fernando) – https://www.dafont.com/pixel-operator.font
 Licensed for free personal and commercial use.
+
+# Notice
+This repository doesn't follow the real flow of completed tasks. It is merely to store the contents of the project in the cloud. For the full development process, refer to the documentation.
