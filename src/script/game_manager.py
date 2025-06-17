@@ -225,6 +225,7 @@ class GameManager:
             camera_obj = self.current_level.tiles[camera_y][camera_x]
             self.current_level.move_entity(camera_obj.entities['camera'], direction)
             self.update_selected_robot()
+            sound_manager.play("camera")  # Play camera move sound
         else:
             logging.error("Cannot move camera without a level loaded")
 

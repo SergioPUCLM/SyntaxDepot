@@ -108,6 +108,7 @@ def main():
     sound_manager.load_sound("finish_level", os.path.join(SFX_FOLDER, "finish_level.wav"), is_music=False)  # Finish level sound
     sound_manager.load_sound("reset_level", os.path.join(SFX_FOLDER, "reset_level.wav"), is_music=False)  # Reset level sound
     sound_manager.load_sound("help", os.path.join(SFX_FOLDER, "help.wav"), is_music=False)  # Help sound
+    sound_manager.load_sound("camera", os.path.join(SFX_FOLDER, "camera.wav"), is_music=False)  # Help sound
 
     sound_manager.load_sound("red_move", os.path.join(SFX_FOLDER, "red_move.wav"), is_music=False)  # Red move sound
     sound_manager.load_sound("blue_move", os.path.join(SFX_FOLDER, "blue_move.wav"), is_music=False)  # Blue move sound
@@ -126,8 +127,8 @@ def main():
 
     # Load music
     sound_manager.load_sound("menu", os.path.join(SFX_FOLDER, "menu.wav"), is_music=True)  # Menu music
-    sound_manager.load_sound("think", os.path.join(SFX_FOLDER, "TEST1.wav"), is_music=True)  # Thinking music
-    sound_manager.load_sound("play", os.path.join(SFX_FOLDER, "TEST2.wav"), is_music=True)  # Play music
+    sound_manager.load_sound("think", os.path.join(SFX_FOLDER, "think.wav"), is_music=True)  # Thinking music
+    sound_manager.load_sound("play", os.path.join(SFX_FOLDER, "play.wav"), is_music=True)  # Play music
 
     sound_manager.play("menu", fade_ms=1000)  # Play the menu music
 

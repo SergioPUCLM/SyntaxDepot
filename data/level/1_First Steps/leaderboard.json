@@ -19,5 +19,12 @@
         "steps_taken": 23,
         "collectables": 0,
         "timestamp": 1749249171
+    },
+    {
+        "name": "Sergio",
+        "score": 23,
+        "steps_taken": 23,
+        "collectables": 0,
+        "timestamp": 1750187596
     }
 ]
