@@ -442,13 +442,15 @@ class GameManager:
                 else:
                     logging.error("Trap delay is negative. Resetting to default.")
                     self.trap_delay = TRAP_DELAY_DEFAULT
-
+                
+                sound_played = False
                 for tile_entity in self.entity_list['tile']:
                     # Step 0.1: Toggle traps
                     if tile_entity.__class__.__name__.lower() == "trap":
                         if self.trap_delay <= 0:  # If the trap delay is 0, toggle the trap
                             tile_entity.active = not tile_entity.active
-                            if tile_entity.active:
+                            if tile_entity.active and not sound_played:
+                                sound_played = True
                                 sound_manager.play("trap_activate")
                         # Check if a robot is above the trap, if trap is active, fail the level and reset
                         if tile_entity.active and self.current_level.tiles[tile_entity.y][tile_entity.x].entities['ground'] is not None:

@@ -105,10 +105,12 @@ def main():
     sound_manager.load_sound("error", os.path.join(SFX_FOLDER, "error.wav"), is_music=False)  # Error sound
     sound_manager.load_sound("warning", os.path.join(SFX_FOLDER, "warning.wav"), is_music=False)  # Warning sound
     sound_manager.load_sound("info", os.path.join(SFX_FOLDER, "info.wav"), is_music=False)  # Info sound
+    sound_manager.load_sound("dialogue", os.path.join(SFX_FOLDER, "dialogue.wav"), is_music=False)  # Dialogue open sound
+    sound_manager.load_sound("talk", os.path.join(SFX_FOLDER, "talk.wav"), is_music=False)  # Talk sound
     sound_manager.load_sound("finish_level", os.path.join(SFX_FOLDER, "finish_level.wav"), is_music=False)  # Finish level sound
     sound_manager.load_sound("reset_level", os.path.join(SFX_FOLDER, "reset_level.wav"), is_music=False)  # Reset level sound
     sound_manager.load_sound("help", os.path.join(SFX_FOLDER, "help.wav"), is_music=False)  # Help sound
-    sound_manager.load_sound("camera", os.path.join(SFX_FOLDER, "camera.wav"), is_music=False)  # Help sound
+    sound_manager.load_sound("camera", os.path.join(SFX_FOLDER, "camera.wav"), is_music=False)  # Camera movement sound
 
     sound_manager.load_sound("red_move", os.path.join(SFX_FOLDER, "red_move.wav"), is_music=False)  # Red move sound
     sound_manager.load_sound("blue_move", os.path.join(SFX_FOLDER, "blue_move.wav"), is_music=False)  # Blue move sound
@@ -119,6 +121,7 @@ def main():
     sound_manager.load_sound("drop_small", os.path.join(SFX_FOLDER, "drop_small.wav"), is_music=False)  # Small drop sound
     sound_manager.load_sound("correct", os.path.join(SFX_FOLDER, "correct.wav"), is_music=False)  # Correct sound
     sound_manager.load_sound("incorrect", os.path.join(SFX_FOLDER, "incorrect.wav"), is_music=False)  # Incorrect sound
+    sound_manager.load_sound("read", os.path.join(SFX_FOLDER, "read.wav"), is_music=False)  # Read sound
     sound_manager.load_sound("crate_spawn", os.path.join(SFX_FOLDER, "crate_spawn.wav"), is_music=False)  # Crate spawn sound
     sound_manager.load_sound("crate_delete", os.path.join(SFX_FOLDER, "crate_delete.wav"), is_music=False)  # Crate delete sound
     sound_manager.load_sound("charge", os.path.join(SFX_FOLDER, "charge.wav"), is_music=False)  # Charge sound

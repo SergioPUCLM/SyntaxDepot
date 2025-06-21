@@ -1,0 +1,15 @@
+{
+  "messages": [
+    "Deja vu? No, your memory isn't glitching. This room is suspiciously similar, because apparently, one level of functions wasn't enough to make you dangerous.",
+    "Last time, we grouped actions under one name. This time, we're making those actions a little smarter. Functions can now take arguments, temporary variables you pass in when calling them.",
+    "Think of it like 'write(x)'. You pass something in, it does something with it. Same idea, but you're the one creating the logic now.",
+    "Here's a quick example:\n\nfunc move_x(steps) {\n  counter = 0;\n  while (counter < steps) {\n    move();\n    counter = counter + 1;\n  }\n}",
+    "With that, calling move_x(4); makes your bot move 4 steps. Boom. Cleaner, nicer, and less repetitive than writing four move()s or nesting a repeat every time.",
+    "Yes, the repeat loop works too, but why settle for pebbles when you've been handed tools?",
+    "Also, important, variables like 'steps' and 'counter' only exist inside the function. Red won't remember them afterward, which is probably for the best.",
+    "Functions with arguments are great for handling patterns with small changes, like, oh, I don't know, corridors of different lengths maybe?",
+    "So go ahead. Upgrade your code. I know you're tired of typing 'move();' eight times just to get stuck in a dead end anyway.",
+    "No, this level wasn't lazily copied from the last one. It's called pedagogical consistency. Look it up.",
+    "Oh, and one more thing, if you're feeling clever, try writing a single function that does the whole job: walk to the hallway, take the crate, come back, and drop it off. Use just one parameter: the corridor number. Let's see if you can spot the pattern."
+  ]
+}

@@ -6,6 +6,7 @@ import logging
 import json
 import os
 import time
+import sys
 from string import ascii_letters, digits
 from pathlib import Path
 from src.render.missing_image import missing_texture_pygame
@@ -305,7 +306,7 @@ class MainMenu:
         else:
             # Exiting name change mode
             new_name = self.name_input.get_text()
-            if new_name and new_name != self.player_name:
+            if new_name and new_name != self.player_name: 
                 # Only update if name changed and not empty
                 self.player_name = new_name
                 self.save_player_name(self.player_name)

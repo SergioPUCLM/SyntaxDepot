@@ -121,36 +121,41 @@ class SoundManager:
             volume (float): The volume level (0.0 to 1.0).
             fade_ms (int): Fade in time in milliseconds (0 for immediate)
         """
-        if name in self.music:  # It's music
-            # Skip if this music is already playing
-            if self.current_music == name and pygame.mixer.music.get_busy():
-                return
+        try:
+            if name in self.music:  # It's music
+                # Skip if this music is already playing
+                if self.current_music == name and pygame.mixer.music.get_busy():
+                    return
+                    
+                # Only stop current music if we're switching to a different track
+                if self.current_music is not None and self.current_music != name:
+                    self.stop_music(fade_ms=self.fade_time)
+                    
+                self.current_music = name
                 
-            # Only stop current music if we're switching to a different track
-            if self.current_music is not None and self.current_music != name:
-                self.stop_music(fade_ms=self.fade_time)
+                if self.music_muted or self.muted:
+                    return
+                    
+                pygame.mixer.music.load(self.music[name])
+                pygame.mixer.music.set_volume(volume)
+                pygame.mixer.music.play(loops=-1, fade_ms=fade_ms)  # Music ignores loops, plays indefinitely
                 
-            self.current_music = name
-            
-            if self.music_muted or self.muted:
-                return
-                
-            pygame.mixer.music.load(self.music[name])
-            pygame.mixer.music.set_volume(volume)
-            pygame.mixer.music.play(loops=-1, fade_ms=fade_ms)  # Music ignores loops, plays indefinitely
-            
-        elif name in self.sounds:  # It's a sound effect
-            if self.muted:
-                return
-                
-            # Find an available channel
-            for channel in self.sfx_channels:
-                if not channel.get_busy():
-                    channel.set_volume(volume)
-                    channel.play(self.sounds[name], loops=loops)
-                    break
-            else:
-                logging.warning(f"No available channel to play sound: {name}")
+            elif name in self.sounds:  # It's a sound effect
+                if self.muted:
+                    return
+                    
+                # Find an available channel
+                for channel in self.sfx_channels:
+                    if not channel.get_busy():
+                        channel.set_volume(volume)
+                        channel.play(self.sounds[name], loops=loops)
+                        break
+                else:
+                    logging.warning(f"No available channel to play sound: {name}")
+        except pygame.error as e:
+            logging.error(f"Failed to play sound {name}: {str(e)}")
+        except Exception as e:
+            logging.error(f"Unexpected error playing sound {name}: {str(e)}")
 
 
     def stop_music(self, fade_ms=0):

@@ -1,0 +1,14 @@
+{
+  "messages": [
+    "Ah, crate generators. The warehouse's answer to \"we need more busywork\". These hatches will deliver a number of crates up from a lower level for you to handle next.",
+    "Red and Green are here today. Their task is simple: move four crates from the generator to the delivery point.",
+    "Yes, just four. You'd think we could automate this part. But no, we hired you instead.",
+    "The generator will produce crates one at a time. Once picked up, it'll spawn the next. Like magic. Or deeply flawed industrial design.",
+    "Now, technically, one bot could do the whole thing. But if you want a better score, and maybe a scrap of my respect, you'll want them to work together.",
+    "That means coordination. If both bots rush to grab a crate at the same time, well... someone's going to be disappointed.",
+    "Use conditions, use vision, use anything other than pure chaos. I've seen enough pileups at crate stations to last several lifetimes.",
+    "You've got the tools. 'see();', loops, logic, whatever it takes to keep these two from stepping on each other's toes. Or treads.",
+    "And remember: the goal isn't just to finish. It's to finish well. Let's not make this a comedy routine.",
+    "Now go. Move crates. Impress me. Or at the very least, don't embarrass me more than the others."
+  ]
+}

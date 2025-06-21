@@ -1,0 +1,15 @@
+{
+    "messages": [
+      "You've learned how to see, how to loop, how to avoid electroshock therapy. Not bad. But now it's time for something a little smarter.",
+      "Let's talk about functions. No, not the social kind. I wouldn't drag you to one of those.",
+      "Functions let you group instructions together under one name. They are your most powerful tool. You write it once, then call it whenever you need it. Like a shortcut, but less lazy-looking.",
+      "To define one, write something like this:\n\nfunc turn_arround() {\n  turn_left();\n  turn_left();\n}",
+      "That defines a new action called 'turn_arround'. Now, instead of writing two turns every time, you can just write:\n\nturn_arround();",
+      "Yes, it's really that simple. Define it with 'func', give it a name, add () and {}. Then call it like any other action, just with parentheses at the end.",
+      "This is great for avoiding repetition. And trust me, your future self will thank you when you're not buried in copy-pasted move()s and turn()s.",
+      "One thing though, functions belong to the robot you write them for. Red won't magically understand Green's custom tricks. No shared brain cells here.",
+      "Use them well, and your code starts to look... well, slightly less like spaghetti. Baby steps.",
+      "Now get moving. Those side paths aren't going to search themselves."
+    ]
+  }
+  

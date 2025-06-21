@@ -575,36 +575,44 @@ class Level:
             else:
                 target_entity = self.tiles[new_y][new_x].entities['ground']
                 target_entity_class = target_entity.__class__.__name__.lower()
-                if target_entity is not None and target_entity_class == "crate" and target_entity.pickable:  # Check if there is an entity to pick up there
-                    # Make sure only green and red can pickup
-                    match entity.__class__.__name__.lower():
-                        case "red":  # Pick up any crate
-                            entity.crate = target_entity
-                            self.remove_entity(target_entity)  # Remove the reference to the crate from the tile
-                            entity.crate.x = None  # Temporarelly disable it's coordinates
-                            entity.crate.y = None
-                            logging.info(f"Entity {entity} picked up crate {target_entity}.")
-                            if target_entity.small:
-                                sound_manager.play("pickup_small")
-                            else:
-                                sound_manager.play("pickup_big")
-                        case "green":
-                            if target_entity.small:
+                if target_entity is not None and target_entity_class == "crate" and target_entity.pickable:  # Check if there is an entity to pick up thereç
+                    if entity.crate is None:  # Check if the entity is already carrying a crate
+                        # Make sure only green and red can pickup
+                        match entity.__class__.__name__.lower():
+                            case "red":  # Pick up any crate
                                 entity.crate = target_entity
-                                self.remove_entity(target_entity)
-                                entity.crate.x = None
+                                self.remove_entity(target_entity)  # Remove the reference to the crate from the tile
+                                entity.crate.x = None  # Temporarelly disable it's coordinates
                                 entity.crate.y = None
                                 logging.info(f"Entity {entity} picked up crate {target_entity}.")
-                                sound_manager.play("pickup_small")
-                            else:
-                                error_handler.push_error(
-                                    "Execution Problem",
-                                    f"Entity {entity} can only carry small crates.\nBig crates must be carried by Red",
-                                    ErrorLevel.WARNING
-                                )
-                                self.success = False  # Mark level as failed
-                                logging.error(f"Entity {entity} cannot pick up crate {target_entity} (Too big).")
-                                success = False
+                                if target_entity.small:
+                                    sound_manager.play("pickup_small")
+                                else:
+                                    sound_manager.play("pickup_big")
+                            case "green":
+                                if target_entity.small:
+                                    entity.crate = target_entity
+                                    self.remove_entity(target_entity)
+                                    entity.crate.x = None
+                                    entity.crate.y = None
+                                    logging.info(f"Entity {entity} picked up crate {target_entity}.")
+                                    sound_manager.play("pickup_small")
+                                else:
+                                    error_handler.push_error(
+                                        "Execution Problem",
+                                        f"Entity {entity} can only carry small crates.\nBig crates must be carried by Red",
+                                        ErrorLevel.WARNING
+                                    )
+                                    self.success = False  # Mark level as failed
+                                    logging.error(f"Entity {entity} cannot pick up crate {target_entity} (Too big).")
+                                    success = False
+                    else:  # If the entity is carrying a crate, 
+                        error_handler.push_error(
+                            "Execution Problem",
+                            f"{entity} is already carrying a crate.",
+                            ErrorLevel.WARNING
+                        )
+                        self.success = False
                 else:
                     error_handler.push_error(
                         "Execution Problem",
@@ -717,6 +725,7 @@ class Level:
                 target_entity_class = target_entity.__class__.__name__.lower()
                 if target_entity is not None and target_entity_class == "outputter":
                     data = target_entity.number
+                    sound_manager.play("read")
                 else:
                     error_handler.push_error(
                         "Execution Problem",

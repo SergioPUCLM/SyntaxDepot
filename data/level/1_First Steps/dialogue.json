@@ -13,7 +13,7 @@
         "Use the WASD or arrow keys on your terminal to move the camera around. You can see what you are pointing at with the symbol right in the center of the display screen. The one that looks like { x }.",
         "Move the pointer over a robot to view and edit its script.",
         "To focus the script editor, press ENTER, or click on it with the mouse.",
-        "To unfocus and save your changes, press SHIFT + ENTER, or click anywhere outside the editor.",
+        "To unfocus and save your changes, press TAB, or click anywhere outside the editor.",
         "Scripts are automatically saved when you:\n- Move the cursor away from a robot\n- Press the Play, Reset, or Exit buttons.",
         "Press the Play button to execute all active robot scripts in parallel.",
         "Press Reset to return all robots to their starting positions and halt execution. This is also how you stop a running simulation.",

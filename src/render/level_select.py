@@ -123,7 +123,15 @@ class LevelSelect:
         x, y = x_start, y_start
         col_count = 0
 
-        for folder in sorted(os.listdir(LEVEL_FOLDER)):
+        def extract_level_number(folder_name):
+            try:
+                number_str, _ = folder_name.split("_", 1)
+                return int(number_str)
+            except ValueError:
+                return float('inf')  # Push invalid folders to the end
+
+
+        for folder in sorted(os.listdir(LEVEL_FOLDER), key=extract_level_number):
             # Skip non-directory items
             if not os.path.isdir(os.path.join(LEVEL_FOLDER, folder)):
                 continue

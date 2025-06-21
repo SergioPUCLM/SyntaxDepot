@@ -67,6 +67,6 @@ class OutputTer(Entity):
         Returns:
             int: Random number for the output terminal.
         """
-        number = random.randint(0, 99)
+        number = random.randint(1, 99)
         self.number = number
         return number

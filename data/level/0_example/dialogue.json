@@ -1,8 +1,0 @@
-{
-    "messages": [
-        "This is a test message.",
-        "Multiple message test.",
-        "Another test message.",
-        "Very long message that exceeds the normal length and is meant to test the limits of the system. It should be able to handle this without any issues. It should also be able to process this message correctly and return the expected output. This is a test to ensure that the system can handle long messages without any problems. ================================================================================================================================================================================================================================================================================="
-    ]
-}

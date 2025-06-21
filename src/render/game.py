@@ -35,6 +35,22 @@ class GameScreen:
         game_manager (GameManager): The game manager instance handling game logic.
         level_name (str): The name of the current level.
         level_folder (str): The folder where the level data is stored.
+        current_robot (Robot): The currently selected robot for the player.
+        folder (str): The folder where the level data is stored.
+        last_score (int): The score from the last completed level.
+        score_overlay_visible (bool): Whether the score submission overlay is visible.
+        player_name (str): The name of the player, retrieved from the options file.
+        language_help_icon_surface (pygame.Surface): The surface for the language help icon.
+        help_available (bool): Whether language help is available.
+        showing_help (bool): Whether the language help popup is currently displayed.
+        dialogue_typing_active (bool): Whether the dialogue is currently being typed out.
+        dialogue_typing_sound_timer (float): Timer for the typing sound effect.
+        instructor_image_surface (pygame.Surface): The surface for the instructor image.
+        explanation_messages (dict): The messages for the level instructions.
+        current_message_index (int): The index of the current message in the dialogue sequence.
+        tiles_x (int): The number of tiles that fit horizontally in the viewport.
+        tiles_y (int): The number of tiles that fit vertically in the viewport.
+        tile_size (int): The size of each tile in pixels.
 
     Methods:
         __init__(screen, manager, change_scene, game_manager, level_name, level_folder): Initializes the game screen with the given parameters.
@@ -84,6 +100,9 @@ class GameScreen:
         self.language_help_icon_surface = None
         self.help_available = True
         self.showing_help = False
+        self.dialogue_typing_active = False
+        self.dialogue_typing_sound_timer = 0.0
+
         try:
             self.language_help_icon_surface = pygame.image.load(os.path.join(SPRITE_FOLDER, "lang_help.png")).convert_alpha()
         except FileNotFoundError:
@@ -115,6 +134,9 @@ class GameScreen:
         Creates the UI elements for the game screen.
         Initializes the layout based on the screen size.
         """
+        self.dialogue_typing_active = False
+        self.dialogue_typing_sound_timer = 0.0
+
         width, height = self.screen.get_size()
         sidebar_width = int(width * 0.35)
         popup_width = min(500, width - 100)
@@ -367,6 +389,8 @@ class GameScreen:
         )
 
         self.calculate_viewport()  # Calculate the viewport size (Radious of tiles rendered)
+        self.game_manager.update_selected_robot()  # Ensure the game manager has the correct selected robot
+        self.update_code_input()  # Update the code input with the current script
 
 
     def calculate_viewport(self):
@@ -426,6 +450,10 @@ class GameScreen:
         match event.type:
             case pygame.QUIT:
                 self.game_manager.save_script(self.code_input.get_text(), self.player_name)
+            case pygame_gui.UI_TEXT_EFFECT_FINISHED:
+                 if event.ui_element == self.dialogue_text:
+                    self.dialogue_typing_active = False
+                    self.dialogue_typing_sound_timer = 0.0
             case pygame_gui.UI_BUTTON_PRESSED:
                 sound_manager.play("click")
                 match event.ui_element:
@@ -473,11 +501,13 @@ class GameScreen:
                     case self.next_button:  # Next/Close button in instructions
                         if self.current_message_index < len(self.explanation_messages.get('messages', [])) - 1:
                             self.current_message_index += 1
+                            self.dialogue_typing_active = False
                             self.show_current_message()
                         else:
                             self.hide_instructions()
 
                     case self.skip_button:  # Skip button in instructions
+                        self.dialogue_typing_active = False
                         self.hide_instructions()
 
             case pygame.KEYDOWN:  # Keyboard input
@@ -514,8 +544,7 @@ class GameScreen:
                         self.code_input.focus()
                         return True
 
-                elif (event.key == pygame.K_RETURN 
-                    and (pygame.key.get_mods() & pygame.KMOD_SHIFT)
+                elif (event.key == pygame.K_TAB 
                     and self.code_input.is_focused 
                     and not self.showing_help 
                     and not self.game_manager.is_running 
@@ -559,6 +588,7 @@ class GameScreen:
         Display level instructions if they exist.
         """
         try:
+            sound_manager.play("dialogue")
             explanation_file = os.path.join("data", "level", self.level_name, "dialogue.json")
             if not os.path.exists(explanation_file):
                 self.help_available = False
@@ -596,6 +626,9 @@ class GameScreen:
         """
         Show the current message in the dialogue sequence.
         """
+        self.dialogue_typing_active = True
+        self.dialogue_typing_sound_timer = 0.0
+
         if not hasattr(self, 'explanation_messages'):
             return
             
@@ -623,6 +656,7 @@ class GameScreen:
         self.instructor_name.hide()
         self.next_button.hide()
         self.skip_button.hide()
+        self.dialogue_typing_active = False
         
         # Re-enable other UI
         self.code_input.enable()
@@ -651,6 +685,12 @@ class GameScreen:
         Args:
             time_delta (float): The time in seconds since the last update.
         """
+        if self.dialogue_typing_active:
+            self.dialogue_typing_sound_timer += time_delta
+            if self.dialogue_typing_sound_timer >= 0.1:  # every 200ms
+                sound_manager.play("talk")
+                self.dialogue_typing_sound_timer = 0.0
+
         self.manager.update(time_delta)
         # Update the code ui
         if self.game_manager.needs_ui_update:

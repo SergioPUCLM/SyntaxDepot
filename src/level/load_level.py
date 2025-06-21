@@ -48,6 +48,7 @@ def load_level(folder):
     has_green = False  # If we added a green robot
     has_crates = False  # If we added crates
     has_big_crate = False  # If we added a big crate
+    has_crate_del = False  # If we added a crate deletor
     chargepads = 0  # Number of charge pads
     ground_bots = 0  # Number of ground robots
     required_terminals = []
@@ -205,6 +206,8 @@ def load_level(folder):
                                     level.objectives["crates_large"] += obj.crate_count
                                     has_big_crate = True
                                 has_crates = True
+                            case "CrateDel":
+                                has_crate_del = True
                             case "OutputTer":
                                 if obj.color in required_terminals:
                                     logging.error(f"Duplicate output terminal color: {obj.color}")
@@ -218,9 +221,6 @@ def load_level(folder):
                             case "InputTer":
                                 existing_terminals.append(obj.input_ter_one)
                                 existing_terminals.append(obj.input_ter_two)
-                                # If the operation is a division, check the number of the second terminal
-                                if obj.operation == "/" and obj.input_ter_two.number == 0:
-                                    obj.input_ter_two.number = 1  # Prevent division by zero
                                 level.objectives["terminals"] += 1
                         
                         if not level.add_entity(obj):
@@ -296,6 +296,16 @@ def load_level(folder):
                 )
                 return None
 
+            # Ensure a crate deletor exists if there are crates in the level
+            if has_crates and not has_crate_del:
+                logging.error("Crate deletor is required to remove crates.")
+                error_handler.push_error(
+                    "Loading Error",
+                    "Level has crates but no CrateDel is present.\nCrateDel is required to remove crates.",
+                    ErrorLevel.ERROR
+                )
+                return None
+
             for y in range(size[1]):  # Check all entities are on expected heights
                 for x in range(size[0]):
                     tile = level.tiles[y][x]
@@ -325,6 +335,7 @@ def load_level(folder):
             f"Missing key in level structure JSON: {e}\nAre you sure the structure has all required fields?",
             ErrorLevel.ERROR
         )
+    '''
     except Exception as e:
         logging.error(f"Unknown error loading level: {e}")
         error_handler.push_error(
@@ -332,5 +343,6 @@ def load_level(folder):
             f"Unknown error loading level: {e}\nPerhaps you forgot one of the entity keys? (tile, ground, air)\nAll must be present, even if empty.",
             ErrorLevel.ERROR
         )
+    '''
 
     return None
