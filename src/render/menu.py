@@ -55,6 +55,9 @@ class MainMenu:
             manager (pygame_gui.UIManager): The UI manager for handling UI elements.
             change_scene (function): Function to change the current scene.
         """
+        os.makedirs(SPRITE_FOLDER, exist_ok=True)
+        os.makedirs(PLAYER_FOLDER, exist_ok=True)
+
         self.screen = screen
         self.manager = manager
         self.change_scene = change_scene
