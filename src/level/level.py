@@ -9,6 +9,7 @@ Classes:
 import os
 import logging
 import pygame
+import threading
 from src.level.tile import Tile
 from src.render.missing_image import missing_texture_pygame
 from src.render.error_handler import error_handler, ErrorLevel
@@ -63,6 +64,7 @@ class Level:
         self.height = height
         self.remove_callback = remove_callback  # Callback function to remove entities from the level
         self.success = True  # Success flag for the level
+        self.lock = threading.Lock()
 
         if os.path.exists(background_image):
             try:
@@ -290,11 +292,16 @@ class Level:
                 logging.error(f"Cannot teleport entity {entity} to ({x}, {y}). Tile is a mid-height wall.")
                 return False
 
-        self.remove_entity(entity)
-        entity.x = x
-        entity.y = y
-        self.add_entity(entity)
-        return True
+        if (self.remove_entity(entity)):
+            entity.x = x
+            entity.y = y
+            if self.add_entity(entity):
+                logging.info(f"Entity {entity} teleported to ({x}, {y}).")
+                return True
+        else:
+            logging.error(f"Failed to remove entity {entity} from its old position ({old_x}, {old_y}).")
+            return False
+        return False
 
 
     def move_entity(self, entity, direction):
@@ -386,24 +393,25 @@ class Level:
         Returns:
             bool: True if the entity was successfully moved, False otherwise
         """
-        success = self.move_entity(entity, entity.direction)
-        if not success:
-            error_handler.push_error(
-                "Execution Problem",
-                f"Entity {entity} cannot advance.\nThe tile is occupied, out of bounds or it cannot cross it.",
-                ErrorLevel.WARNING
-            )
-            self.success = False  # Mark level as failed
-            logging.error(f"Entity {entity} cannot move.")
-        else:
-            match entity.__class__.__name__.lower():
-                case "red":
-                    sound_manager.play("red_move")
-                case "green":
-                    sound_manager.play("green_move")
-                case "blue":
-                    sound_manager.play("blue_move")
-        return success
+        with self.lock:
+            success = self.move_entity(entity, entity.direction)
+            if not success:
+                error_handler.push_error(
+                    "Execution Problem",
+                    f"Entity {entity} cannot advance.\nThe tile is occupied, out of bounds or it cannot cross it.",
+                    ErrorLevel.WARNING
+                )
+                self.success = False  # Mark level as failed
+                logging.error(f"Entity {entity} cannot move.")
+            else:
+                match entity.__class__.__name__.lower():
+                    case "red":
+                        sound_manager.play("red_move")
+                    case "green":
+                        sound_manager.play("green_move")
+                    case "blue":
+                        sound_manager.play("blue_move")
+            return success
 
     
     def turn(self, entity, direction):  # turn_left() or turn_right() action in language
@@ -417,39 +425,40 @@ class Level:
         Returns:
             bool: True if the entity was successfully turned, False otherwise
         """
-        success = True
-        if direction == "left":
-            match entity.direction:
-                case "N":
-                    entity.direction = "W"
-                case "W":
-                    entity.direction = "S"
-                case "S":
-                    entity.direction = "E"
-                case "E":
-                    entity.direction = "N"
-        elif direction == "right":
-            match entity.direction:
-                case "N":
-                    entity.direction = "E"
-                case "E":
-                    entity.direction = "S"
-                case "S":
-                    entity.direction = "W"
-                case "W":
-                    entity.direction = "N"
-        else:
-            logging.error(f"Invalid turn direction: {direction}")
-            success = False
-        if success:
-            match entity.__class__.__name__.lower():
-                case "red":
-                    sound_manager.play("red_move")
-                case "green":
-                    sound_manager.play("green_move")
-                case "blue":
-                    sound_manager.play("blue_move")
-        return success
+        with self.lock:
+            success = True
+            if direction == "left":
+                match entity.direction:
+                    case "N":
+                        entity.direction = "W"
+                    case "W":
+                        entity.direction = "S"
+                    case "S":
+                        entity.direction = "E"
+                    case "E":
+                        entity.direction = "N"
+            elif direction == "right":
+                match entity.direction:
+                    case "N":
+                        entity.direction = "E"
+                    case "E":
+                        entity.direction = "S"
+                    case "S":
+                        entity.direction = "W"
+                    case "W":
+                        entity.direction = "N"
+            else:
+                logging.error(f"Invalid turn direction: {direction}")
+                success = False
+            if success:
+                match entity.__class__.__name__.lower():
+                    case "red":
+                        sound_manager.play("red_move")
+                    case "green":
+                        sound_manager.play("green_move")
+                    case "blue":
+                        sound_manager.play("blue_move")
+            return success
 
 
     def _get_target_coords(self, entity):  # Helper function
@@ -505,55 +514,56 @@ class Level:
         Returns:
             str: String representation of what is in front of the current entity.
         """
-        vision = None
-        new_x, new_y = self._get_target_coords(entity)
-        if new_x is None or new_y is None:  # Check the target was set
-            error_handler.push_error(
-                "Execution Problem",
-                f"Entity {entity} cannot see an invalid tile (out of bounds).",
-                ErrorLevel.WARNING
-            )
-            self.success = False  # Mark level as failed
-            logging.error(f"Entity {entity} cannot see.")
-        else:
-            target_tile = self.tiles[new_y][new_x]
-            ground_entity = target_tile.entities.get('ground')
-            skip_ground = False
-            if ground_entity:
-                entity_name = ground_entity.__class__.__name__.lower()
-                match entity_name:
-                    case "crate":
-                        vision = "crate_small" if ground_entity.small else "crate"
-                    case "crategen":
-                        vision = "crategen_small" if ground_entity.type == "small" else "crategen"
-                    case "collectable":
-                        skip_ground = True  # Ignore collecables to make them invisible
-                    case _:
-                        vision = ground_entity.__class__.__name__.lower()
+        with self.lock:
+            vision = None
+            new_x, new_y = self._get_target_coords(entity)
+            if new_x is None or new_y is None:  # Check the target was set
+                error_handler.push_error(
+                    "Execution Problem",
+                    f"Entity {entity} cannot see an invalid tile (out of bounds).",
+                    ErrorLevel.WARNING
+                )
+                self.success = False  # Mark level as failed
+                logging.error(f"Entity {entity} cannot see.")
+            else:
+                target_tile = self.tiles[new_y][new_x]
+                ground_entity = target_tile.entities.get('ground')
+                skip_ground = False
+                if ground_entity:
+                    entity_name = ground_entity.__class__.__name__.lower()
+                    match entity_name:
+                        case "crate":
+                            vision = "crate_small" if ground_entity.small else "crate"
+                        case "crategen":
+                            vision = "crategen_small" if ground_entity.type == "small" else "crategen"
+                        case "collectable":
+                            skip_ground = True  # Ignore collecables to make them invisible
+                        case _:
+                            vision = ground_entity.__class__.__name__.lower()
 
-            if (not ground_entity or skip_ground) and target_tile.entities.get('tile'):
-                tile_entity = target_tile.entities['tile']
-                if tile_entity.__class__.__name__.lower() == "trap":
-                    if tile_entity.active:
-                        vision = "trap"
-                    else:
-                        if target_tile.is_mid_wall:
-                            vision = "mid_wall"
-                        elif not target_tile.is_path:
-                            vision = "wall"
+                if (not ground_entity or skip_ground) and target_tile.entities.get('tile'):
+                    tile_entity = target_tile.entities['tile']
+                    if tile_entity.__class__.__name__.lower() == "trap":
+                        if tile_entity.active:
+                            vision = "trap"
                         else:
-                            vision = "empty"
-                else:
-                    vision = tile_entity.__class__.__name__.lower()
+                            if target_tile.is_mid_wall:
+                                vision = "mid_wall"
+                            elif not target_tile.is_path:
+                                vision = "wall"
+                            else:
+                                vision = "empty"
+                    else:
+                        vision = tile_entity.__class__.__name__.lower()
 
-            if vision is None:
-                if target_tile.is_mid_wall:
-                    vision = "mid_wall"
-                elif not target_tile.is_path:
-                    vision = "wall"
-                else:
-                    vision = "empty"
-        return vision
+                if vision is None:
+                    if target_tile.is_mid_wall:
+                        vision = "mid_wall"
+                    elif not target_tile.is_path:
+                        vision = "wall"
+                    else:
+                        vision = "empty"
+            return vision
 
 
     def pickup(self, entity):  # pickup() in language
@@ -566,72 +576,73 @@ class Level:
         Returns:
             bool: True if the entity was successfully picked up, False otherwise
         """
-        success = True
-        if entity.__class__.__name__.lower() in ["red", "green"]:  # Only red and green can pick up
-            new_x, new_y = self._get_target_coords(entity)
-            if new_x is None or new_y is None:  # Check the target was set
-                logging.error(f"Entity {entity} cannot be picked up.")
-                success = False
-            else:
-                target_entity = self.tiles[new_y][new_x].entities['ground']
-                target_entity_class = target_entity.__class__.__name__.lower()
-                if target_entity is not None and target_entity_class == "crate" and target_entity.pickable:  # Check if there is an entity to pick up thereç
-                    if entity.crate is None:  # Check if the entity is already carrying a crate
-                        # Make sure only green and red can pickup
-                        match entity.__class__.__name__.lower():
-                            case "red":  # Pick up any crate
-                                entity.crate = target_entity
-                                self.remove_entity(target_entity)  # Remove the reference to the crate from the tile
-                                entity.crate.x = None  # Temporarelly disable it's coordinates
-                                entity.crate.y = None
-                                logging.info(f"Entity {entity} picked up crate {target_entity}.")
-                                if target_entity.small:
-                                    sound_manager.play("pickup_small")
-                                else:
-                                    sound_manager.play("pickup_big")
-                            case "green":
-                                if target_entity.small:
+        with self.lock:
+            success = True
+            if entity.__class__.__name__.lower() in ["red", "green"]:  # Only red and green can pick up
+                new_x, new_y = self._get_target_coords(entity)
+                if new_x is None or new_y is None:  # Check the target was set
+                    logging.error(f"Entity {entity} cannot be picked up.")
+                    success = False
+                else:
+                    target_entity = self.tiles[new_y][new_x].entities['ground']
+                    target_entity_class = target_entity.__class__.__name__.lower()
+                    if target_entity is not None and target_entity_class == "crate" and target_entity.pickable:  # Check if there is an entity to pick up thereç
+                        if entity.crate is None:  # Check if the entity is already carrying a crate
+                            # Make sure only green and red can pickup
+                            match entity.__class__.__name__.lower():
+                                case "red":  # Pick up any crate
                                     entity.crate = target_entity
-                                    self.remove_entity(target_entity)
-                                    entity.crate.x = None
+                                    self.remove_entity(target_entity)  # Remove the reference to the crate from the tile
+                                    entity.crate.x = None  # Temporarelly disable it's coordinates
                                     entity.crate.y = None
                                     logging.info(f"Entity {entity} picked up crate {target_entity}.")
-                                    sound_manager.play("pickup_small")
-                                else:
-                                    error_handler.push_error(
-                                        "Execution Problem",
-                                        f"Entity {entity} can only carry small crates.\nBig crates must be carried by Red",
-                                        ErrorLevel.WARNING
-                                    )
-                                    self.success = False  # Mark level as failed
-                                    logging.error(f"Entity {entity} cannot pick up crate {target_entity} (Too big).")
-                                    success = False
-                    else:  # If the entity is carrying a crate, 
+                                    if target_entity.small:
+                                        sound_manager.play("pickup_small")
+                                    else:
+                                        sound_manager.play("pickup_big")
+                                case "green":
+                                    if target_entity.small:
+                                        entity.crate = target_entity
+                                        self.remove_entity(target_entity)
+                                        entity.crate.x = None
+                                        entity.crate.y = None
+                                        logging.info(f"Entity {entity} picked up crate {target_entity}.")
+                                        sound_manager.play("pickup_small")
+                                    else:
+                                        error_handler.push_error(
+                                            "Execution Problem",
+                                            f"Entity {entity} can only carry small crates.\nBig crates must be carried by Red",
+                                            ErrorLevel.WARNING
+                                        )
+                                        self.success = False  # Mark level as failed
+                                        logging.error(f"Entity {entity} cannot pick up crate {target_entity} (Too big).")
+                                        success = False
+                        else:  # If the entity is carrying a crate, 
+                            error_handler.push_error(
+                                "Execution Problem",
+                                f"{entity} is already carrying a crate.",
+                                ErrorLevel.WARNING
+                            )
+                            self.success = False
+                    else:
                         error_handler.push_error(
                             "Execution Problem",
-                            f"{entity} is already carrying a crate.",
+                            f"Entity {entity} can only pick up crates.",
                             ErrorLevel.WARNING
                         )
-                        self.success = False
-                else:
-                    error_handler.push_error(
-                        "Execution Problem",
-                        f"Entity {entity} can only pick up crates.",
-                        ErrorLevel.WARNING
-                    )
-                    self.success = False  # Mark level as failed
-                    logging.error(f"No entity to pick up at ({new_x}, {new_y}).")
-                    success = False
-        else:
-            logging.error(f"Entity {entity} cannot pick up.")
-            error_handler.push_error(
-                "Execution Problem",
-                f"Robot {entity} cannot execute pickup() actions.\nOnly Red and Green can.",
-                ErrorLevel.WARNING
-            )
-            self.success = False  # Mark level as failed
-            success = False
-        return success
+                        self.success = False  # Mark level as failed
+                        logging.error(f"No entity to pick up at ({new_x}, {new_y}).")
+                        success = False
+            else:
+                logging.error(f"Entity {entity} cannot pick up.")
+                error_handler.push_error(
+                    "Execution Problem",
+                    f"Robot {entity} cannot execute pickup() actions.\nOnly Red and Green can.",
+                    ErrorLevel.WARNING
+                )
+                self.success = False  # Mark level as failed
+                success = False
+            return success
                 
                         
     def drop(self, entity):  # drop() in language
@@ -644,59 +655,60 @@ class Level:
         Returns:
             bool: True if the entity was successfully dropped, False otherwise
         """
-        success = True
-        if entity.__class__.__name__.lower() in ["red", "green"]:  # Only red and green can drop
-            new_x, new_y = self._get_target_coords(entity)
-            if new_x is None or new_y is None:
+        with self.lock:
+            success = True
+            if entity.__class__.__name__.lower() in ["red", "green"]:  # Only red and green can drop
+                new_x, new_y = self._get_target_coords(entity)
+                if new_x is None or new_y is None:
+                    error_handler.push_error(
+                        "Execution Problem",
+                        f"Entity {entity} cannot drop it's crate on an invalid tile (out of bounds).",
+                        ErrorLevel.WARNING
+                    )
+                    self.success = False  # Mark level as failed
+                    logging.error(f"Entity {entity} cannot drop.")
+                    success = False
+                else:
+                    target_entity = self.tiles[new_y][new_x].entities['ground']
+                    if target_entity is None and self.tiles[new_y][new_x].is_path:  # Check if the tile is empty and is not a wall
+                        if entity.crate is not None:
+                            entity.crate.x = new_x
+                            entity.crate.y = new_y
+                            self.add_entity(entity.crate)
+                            if entity.crate.small:
+                                sound_manager.play("drop_small")
+                            else:
+                                sound_manager.play("drop_big")
+                            entity.crate = None
+                            logging.info(f"Entity {entity} dropped crate at ({new_x}, {new_y}).")
+                        else:
+                            error_handler.push_error(
+                                "Execution Problem",
+                                f"Entity {entity} is not holding a crate.",
+                                ErrorLevel.WARNING
+                            )
+                            self.success = False  # Mark level as failed
+                            logging.error(f"Entity {entity} has nothing to drop.")
+                            success = False
+                    else:
+                        error_handler.push_error(
+                            "Execution Problem",
+                            f"Entity {entity} cannot drop it's crate on an occupied tile.",
+                            ErrorLevel.WARNING
+                        )
+                        self.success = False  # Mark level as failed
+                        logging.error(f"Cannot drop entity at ({new_x}, {new_y}). Tile is already occupied.")
+                        success = False
+            else:
                 error_handler.push_error(
                     "Execution Problem",
-                    f"Entity {entity} cannot drop it's crate on an invalid tile (out of bounds).",
+                    f"Robot {entity} cannot hold crates.\nOnly Red and Green can.",
                     ErrorLevel.WARNING
                 )
                 self.success = False  # Mark level as failed
                 logging.error(f"Entity {entity} cannot drop.")
                 success = False
-            else:
-                target_entity = self.tiles[new_y][new_x].entities['ground']
-                if target_entity is None and self.tiles[new_y][new_x].is_path:  # Check if the tile is empty and is not a wall
-                    if entity.crate is not None:
-                        entity.crate.x = new_x
-                        entity.crate.y = new_y
-                        self.add_entity(entity.crate)
-                        if entity.crate.small:
-                            sound_manager.play("drop_small")
-                        else:
-                            sound_manager.play("drop_big")
-                        entity.crate = None
-                        logging.info(f"Entity {entity} dropped crate at ({new_x}, {new_y}).")
-                    else:
-                        error_handler.push_error(
-                            "Execution Problem",
-                            f"Entity {entity} is not holding a crate.",
-                            ErrorLevel.WARNING
-                        )
-                        self.success = False  # Mark level as failed
-                        logging.error(f"Entity {entity} has nothing to drop.")
-                        success = False
-                else:
-                    error_handler.push_error(
-                        "Execution Problem",
-                        f"Entity {entity} cannot drop it's crate on an occupied tile.",
-                        ErrorLevel.WARNING
-                    )
-                    self.success = False  # Mark level as failed
-                    logging.error(f"Cannot drop entity at ({new_x}, {new_y}). Tile is already occupied.")
-                    success = False
-        else:
-            error_handler.push_error(
-                "Execution Problem",
-                f"Robot {entity} cannot hold crates.\nOnly Red and Green can.",
-                ErrorLevel.WARNING
-            )
-            self.success = False  # Mark level as failed
-            logging.error(f"Entity {entity} cannot drop.")
-            success = False
-        return success    
+            return success    
 
 
     def read(self, entity):  # read() in language
@@ -709,40 +721,41 @@ class Level:
         Returns:
             str: Data read from the entity (None if the read action could not be completed)
         """
-        if entity.__class__.__name__.lower() == "blue":  # Only blue can read
-            data = None
-            new_x, new_y = self._get_target_coords(entity)
-            if new_x is None or new_y is None:
+        with self.lock:
+            if entity.__class__.__name__.lower() == "blue":  # Only blue can read
+                data = None
+                new_x, new_y = self._get_target_coords(entity)
+                if new_x is None or new_y is None:
+                    error_handler.push_error(
+                        "Execution Problem",
+                        f"Robot {entity} can only read from output terminals",
+                        ErrorLevel.WARNING
+                    )
+                    self.success = False  # Mark level as failed
+                    logging.error(f"Entity {entity} cannot read.")
+                else:
+                    target_entity = self.tiles[new_y][new_x].entities['ground']
+                    target_entity_class = target_entity.__class__.__name__.lower()
+                    if target_entity is not None and target_entity_class == "outputter":
+                        data = target_entity.number
+                        sound_manager.play("read")
+                    else:
+                        error_handler.push_error(
+                            "Execution Problem",
+                            f"There is nothing to read in front of {entity}.\nGot: {target_entity_class}\nExpected: outputter",
+                            ErrorLevel.WARNING
+                        )
+                        self.success = False  # Mark level as failed
+                        logging.error(f"No entity to read at ({new_x}, {new_y}).")
+            else:
                 error_handler.push_error(
                     "Execution Problem",
-                    f"Robot {entity} can only read from output terminals",
+                    f"Robot {entity} cannot execute read() actions.",
                     ErrorLevel.WARNING
                 )
                 self.success = False  # Mark level as failed
                 logging.error(f"Entity {entity} cannot read.")
-            else:
-                target_entity = self.tiles[new_y][new_x].entities['ground']
-                target_entity_class = target_entity.__class__.__name__.lower()
-                if target_entity is not None and target_entity_class == "outputter":
-                    data = target_entity.number
-                    sound_manager.play("read")
-                else:
-                    error_handler.push_error(
-                        "Execution Problem",
-                        f"There is nothing to read in front of {entity}.\nGot: {target_entity_class}\nExpected: outputter",
-                        ErrorLevel.WARNING
-                    )
-                    self.success = False  # Mark level as failed
-                    logging.error(f"No entity to read at ({new_x}, {new_y}).")
-        else:
-            error_handler.push_error(
-                "Execution Problem",
-                f"Robot {entity} cannot execute read() actions.",
-                ErrorLevel.WARNING
-            )
-            self.success = False  # Mark level as failed
-            logging.error(f"Entity {entity} cannot read.")
-        return data
+            return data
 
 
     def write(self, entity, data):  # write() in language
@@ -756,81 +769,82 @@ class Level:
         Returns:
             bool: True if the entity was successfully written to, False otherwise
         """
-        success = True
-        if entity.__class__.__name__.lower() == "blue":  # Only blue can write
-            new_x, new_y = self._get_target_coords(entity)
-            if new_x is None or new_y is None:
-                error_handler.push_error(
-                    "Execution Problem",
-                    f"Robot {entity} can only write to input terminals",
-                    ErrorLevel.WARNING
-                )
-                self.success = False  # Mark level as failed
-                logging.error(f"No entity to write to at ({new_x}, {new_y}).")
-                success = False
-            else:
-                target_entity = self.tiles[new_y][new_x].entities['ground']
-                target_entity_class = target_entity.__class__.__name__.lower()
-                if target_entity is not None and target_entity_class == "inputter":
-                    if entity.__class__.__name__.lower() == "blue":
-                        # Write (Check if the numbers required on the terminals num op num is the same as data)
-                        # Locate the terminals in the level that have the colors
-                        num_one = None
-                        num_two = None
-                        for tile in self.tiles:
-                            for t in tile:
-                                if t.entities['ground'] is not None and t.entities['ground'].__class__.__name__.lower() == "outputter":
-                                    if target_entity.input_ter_one == t.entities['ground'].color:
-                                        num_one = t.entities['ground'].number
-                                    elif target_entity.input_ter_two == t.entities['ground'].color:
-                                        num_two = t.entities['ground'].number
-                        result = None
-                        match target_entity.operation:
-                            case "+":
-                                result = num_one + num_two
-                            case "-":
-                                result = num_one - num_two
-                            case "*":
-                                result = num_one * num_two
-                            case "/":
-                                if num_two != 0:
-                                    result = num_one / num_two
-                                else:
-                                    logging.error("Division by zero error.")
-                                    success = False
-                        if result == data:
-                            target_entity.activated = True
-                            logging.info(f"Entity {entity} wrote {data} to {target_entity}.")
-                            sound_manager.play("correct")
-                        else:
-                            error_handler.push_error(
-                                "Execution Problem",
-                                f"Robot {entity} wrote the wrong data to a terminal.\nGot: {data}\nExpected: {result}",
-                                ErrorLevel.WARNING
-                            )
-                            self.success = False  # Mark level as failed
-                            logging.error(f"Entity {entity} failed to write {data} to {target_entity}.")
-                            sound_manager.play("incorrect")
-                            success = False
-                else:
+        with self.lock:
+            success = True
+            if entity.__class__.__name__.lower() == "blue":  # Only blue can write
+                new_x, new_y = self._get_target_coords(entity)
+                if new_x is None or new_y is None:
                     error_handler.push_error(
                         "Execution Problem",
-                        f"Robot {entity} needs an Input terminal in front to write.",
+                        f"Robot {entity} can only write to input terminals",
                         ErrorLevel.WARNING
                     )
                     self.success = False  # Mark level as failed
-                    logging.error(f"Entity {entity} cannot write to {target_entity}.")
+                    logging.error(f"No entity to write to at ({new_x}, {new_y}).")
                     success = False
-        else:
-            error_handler.push_error(
-                "Execution Problem",
-                f"Robot {entity} cannot execute write() actions.",
-                ErrorLevel.WARNING
-            )
-            self.success = False  # Mark level as failed
-            logging.error(f"Entity {entity} cannot write.")
-            success = False
-        return success
+                else:
+                    target_entity = self.tiles[new_y][new_x].entities['ground']
+                    target_entity_class = target_entity.__class__.__name__.lower()
+                    if target_entity is not None and target_entity_class == "inputter":
+                        if entity.__class__.__name__.lower() == "blue":
+                            # Write (Check if the numbers required on the terminals num op num is the same as data)
+                            # Locate the terminals in the level that have the colors
+                            num_one = None
+                            num_two = None
+                            for tile in self.tiles:
+                                for t in tile:
+                                    if t.entities['ground'] is not None and t.entities['ground'].__class__.__name__.lower() == "outputter":
+                                        if target_entity.input_ter_one == t.entities['ground'].color:
+                                            num_one = t.entities['ground'].number
+                                        elif target_entity.input_ter_two == t.entities['ground'].color:
+                                            num_two = t.entities['ground'].number
+                            result = None
+                            match target_entity.operation:
+                                case "+":
+                                    result = num_one + num_two
+                                case "-":
+                                    result = num_one - num_two
+                                case "*":
+                                    result = num_one * num_two
+                                case "/":
+                                    if num_two != 0:
+                                        result = num_one / num_two
+                                    else:
+                                        logging.error("Division by zero error.")
+                                        success = False
+                            if result == data:
+                                target_entity.activated = True
+                                logging.info(f"Entity {entity} wrote {data} to {target_entity}.")
+                                sound_manager.play("correct")
+                            else:
+                                error_handler.push_error(
+                                    "Execution Problem",
+                                    f"Robot {entity} wrote the wrong data to a terminal.\nGot: {data}\nExpected: {result}",
+                                    ErrorLevel.WARNING
+                                )
+                                self.success = False  # Mark level as failed
+                                logging.error(f"Entity {entity} failed to write {data} to {target_entity}.")
+                                sound_manager.play("incorrect")
+                                success = False
+                    else:
+                        error_handler.push_error(
+                            "Execution Problem",
+                            f"Robot {entity} needs an Input terminal in front to write.",
+                            ErrorLevel.WARNING
+                        )
+                        self.success = False  # Mark level as failed
+                        logging.error(f"Entity {entity} cannot write to {target_entity}.")
+                        success = False
+            else:
+                error_handler.push_error(
+                    "Execution Problem",
+                    f"Robot {entity} cannot execute write() actions.",
+                    ErrorLevel.WARNING
+                )
+                self.success = False  # Mark level as failed
+                logging.error(f"Entity {entity} cannot write.")
+                success = False
+            return success
                 
     
     def wait(self, entity):  # wait() in language
@@ -843,16 +857,17 @@ class Level:
         Returns:
             bool: True if the entity successfully waited.
         """
-        success = True
-        if entity is not None and (entity.__class__.__name__.lower() == "green" or entity.__class__.__name__.lower() == "blue" or entity.__class__.__name__.lower() == "red"):
-            pass
-        else:
-            logging.error(f"Entity {entity} cannot wait.")
-            error_handler.push_error(
-                "Execution Error",
-                f"Robot {entity} cannot wait.",
-                ErrorLevel.WARNING
-            )
-            self.success = False  # Mark level as failed
-            success = False
-        return success
+        with self.lock:
+            success = True
+            if entity is not None and (entity.__class__.__name__.lower() == "green" or entity.__class__.__name__.lower() == "blue" or entity.__class__.__name__.lower() == "red"):
+                pass
+            else:
+                logging.error(f"Entity {entity} cannot wait.")
+                error_handler.push_error(
+                    "Execution Error",
+                    f"Robot {entity} cannot wait.",
+                    ErrorLevel.WARNING
+                )
+                self.success = False  # Mark level as failed
+                success = False
+            return success

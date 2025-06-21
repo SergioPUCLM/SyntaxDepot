@@ -355,7 +355,7 @@ class GameManager:
                 self.success = False
                 self.finished_robots.append(robot)
 
-    
+
     def check_completion(self):
         """
         Checks if the level is completed.
@@ -393,6 +393,16 @@ class GameManager:
             error_handler.push_error(
                 "Execution Error",
                 f"All robots finished, but objectives not met. Resetting level.",
+                ErrorLevel.ERROR
+            )
+            self.reset_level()
+
+        # If all the robots are finished, but the level was not successful, reset the level
+        if all_robots_finished and not self.current_level.success:
+            logging.error("All robots finished, but the level was not successful. The level was restarted.")
+            error_handler.push_error(
+                "Execution Error",
+                f"All robots finished, but an invalid action happened. Resetting level.\nMake sure a robot did not run into a wall or fail any other action.",
                 ErrorLevel.ERROR
             )
             self.reset_level()

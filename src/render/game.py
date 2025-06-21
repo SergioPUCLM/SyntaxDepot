@@ -125,6 +125,8 @@ class GameScreen:
             return
 
         self.tile_size = self.game_manager.current_level.tile_size
+        self.game_manager.current_level.get_camera_position()  # Ensure camera exists
+        self.game_manager.update_selected_robot()  # Force update robot selection
         self.create_ui()
         self.display_instructions()  # Show instructions on first load
 
@@ -389,8 +391,9 @@ class GameScreen:
         )
 
         self.calculate_viewport()  # Calculate the viewport size (Radious of tiles rendered)
-        self.game_manager.update_selected_robot()  # Ensure the game manager has the correct selected robot
-        self.update_code_input()  # Update the code input with the current script
+        self.game_manager.current_level.get_camera_position()
+        self.game_manager.update_selected_robot()
+        self.update_code_input()
 
 
     def calculate_viewport(self):
@@ -497,6 +500,7 @@ class GameScreen:
                         self.reset_button.enable()
                         self.instructions_button.enable()
                         self.language_help_button.enable()
+                        self.update_code_input()
 
                     case self.next_button:  # Next/Close button in instructions
                         if self.current_message_index < len(self.explanation_messages.get('messages', [])) - 1:
@@ -663,6 +667,7 @@ class GameScreen:
         self.play_button.enable()
         self.reset_button.enable()
         self.showing_help = False
+        self.update_code_input()
                     
 
     def update_code_input(self):
@@ -676,7 +681,8 @@ class GameScreen:
         else:
             self.code_input.disable()
             self.code_input.set_text("No bot selected\n\nSelect a bot to modify it's script.")
-            
+
+
 
     def update(self, time_delta):
         """
@@ -1077,6 +1083,7 @@ class GameScreen:
         self.manager.clear_and_reset()
         self.calculate_viewport()
         self.create_ui()
+        self.game_manager.update_selected_robot()
         self.code_input.set_text(last_script)
 
         # Recreate score popup UI
