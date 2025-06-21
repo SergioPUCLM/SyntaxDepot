@@ -6,7 +6,6 @@ import logging
 import json
 import os
 import time
-import sys
 from string import ascii_letters, digits
 from pathlib import Path
 from src.render.missing_image import missing_texture_pygame

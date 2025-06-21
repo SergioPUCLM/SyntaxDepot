@@ -6,24 +6,13 @@ This program was developed as part of the bachelor's dissertation in Computer En
 
 Developed by: Sergio Pozuelo Martin-Consuegra
 Supervised by: Jose Jesus Castro Sanchez
-
-Thanks to:
-- Jayvee Enaguas (Zeh Fernando): Pixel Operator font (https://www.dafont.com/pixel-operator.font)
-- Alberto Barrais Bellerin: Testing and general feedback
-- Manuel Cano Garcia: User interface feedback
-- Alejandro Cañas Borreguero: General feedback
-- Francisco Javier Luna: User interface feedback
-- Luis Benito Lopez: General feedback
-- Daniel Ayuso del Campo: General feedback
-- Valeria Samani Padilla Cuba: Game art ideas
-
-May this game provide as much enjoyment to you as it did to me while developing it.
 """
 
 import sys
 import os
 import logging
 import json
+import ctypes
 import pygame
 import pygame_gui
 from pygame_gui.core.text.text_box_layout_row import TextBoxLayoutRow
@@ -41,8 +30,8 @@ from src.render.error_handler import error_handler
 from src.render.sound_manager import sound_manager
 
 # Constants
-SCREEN_WIDTH = 1000
-SCREEN_HEIGHT = 600
+SCREEN_WIDTH = 1000  # 1000
+SCREEN_HEIGHT = 600  # 600
 GAME_NAME = "Syntax Depot"
 DATA_FILE = "data/options.json"
 SPRITES_FOLDER = "res/sprites"
@@ -84,8 +73,8 @@ def main():
         sys.exit(1)
 
     # Initial setup
-    pygame.init()  # Initialize pygame	
-    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)  # Create the screen
+    pygame.init()  # Initialize pygame
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)
     pygame.display.set_caption(f"{GAME_NAME} - Main menu")  # Set the window title
     game_manager = GameManager()  # Create the game manager
     manager = pygame_gui.UIManager((SCREEN_WIDTH, SCREEN_HEIGHT))  # Create the UI manager
@@ -238,6 +227,13 @@ def main():
     # Initial scene
     current_scene = "menu"
     scenes[current_scene] = MainMenu(screen, manager, change_scene)
+
+    if sys.platform.startswith('win'):
+        import ctypes
+        hwnd = pygame.display.get_wm_info()['window']
+        ctypes.windll.user32.ShowWindow(hwnd, 3)  # SW_MAXIMIZE
+    else:
+        logging.warning("Window maximization is not supported on this platform.")
 
     # Game loop
     clock = pygame.time.Clock()
