@@ -337,7 +337,7 @@ class LevelSelect:
 
     def is_valid_level(self, folder_name):
         """
-        Checks if the folder name follows the correct format (X_Name).
+        Checks if the folder name follows the correct format (X_Name) where X is a number.
         
         Args:
             folder_name (str): Name of the folder to validate.
@@ -345,16 +345,18 @@ class LevelSelect:
         Returns:
             bool: True if valid, False otherwise.
         """
-        success = True
-        if not folder_name.count("_") == 1 and folder_name.split("_")[0].isdigit():
-            success = False
+        # Check if the folder name has exactly one underscore and the part before it is a number
+        parts = folder_name.split("_")
+        if len(parts) != 2 or not parts[0].isdigit():
+            return False
         
         # Check if a structure.json file is present in the folder
         structure_path = os.path.join(LEVEL_FOLDER, folder_name, "structure.json")
         if not os.path.exists(structure_path):
             logging.debug(f"Missing structure.json in {folder_name}")
-            success = False
-        return success
+            return False
+        
+        return True
 
 
     def update(self, time_delta):
