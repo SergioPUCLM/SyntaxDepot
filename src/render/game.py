@@ -680,7 +680,7 @@ class GameScreen:
             self.code_input.set_text(self.game_manager.load_script(self.player_name))
         else:
             self.code_input.disable()
-            self.code_input.set_text("No bot selected\n\nSelect a bot to modify it's script.")
+            self.code_input.set_text("No bot selected\n\nSelect a bot to modify its script.")
 
 
 

@@ -1,10 +1,9 @@
 <font pixel_size="18">Syntax Depot General Help</font>
 
-
 <font pixel_size="14">1. General Help</font>
 <font pixel_size="12">1.1. UI Controls</font>
 - WASD and the arrow keys are used to move the camera around the level.
-- Move the camera on top of a robot to be able to edit it's script. Script editing is disabled while the scripts are executing.
+- Move the camera on top of a robot to edit its script. Script editing is disabled while the scripts are executing.
 - Pressing ENTER while the camera is on top of a robot will focus the script editor.
 - Pressing TAB while the script editor is focused will unfocus and save the script.
 - Scripts are saved automatically when one of the following actions is performed:
@@ -12,41 +11,39 @@
   - Pressing the "Play" button on the script editor.
   - Pressing the "Reset" button on the script editor.
   - Pressing the "Exit" button on the script editor.
-- Pressing the "Play" button on will execute the script of all robots in the level. The robots will execute their scripts in parallel, meaning that they will all run at the same time.
-- Pressing the "Reset" button on will reset the robots to their initial positions and stop their scripts. This is the only way to stop and ongoing simulation.
-- Pressing the "Exit" button on will close the level and return to the level select screen.
-- Presing the "Help" button (if available) will display the starting message of the level.
+- Pressing the "Play" button will execute the script of all robots in the level. The robots will execute their scripts in parallel, meaning they will all run at the same time.
+- Pressing the "Reset" button will reset the robots to their initial positions and stop their scripts. This is the only way to stop an ongoing simulation.
+- Pressing the "Exit" button will close the level and return to the level select screen.
+- Pressing the "Help" button (if available) will display the starting message of the level.
 - Pressing the "?" button or F1 will display this help message.
 
-
 <font pixel_size="12">1.2. Robot Capabilities</font>
-- <font color='#FF0000FF'>Red</font> is the carrier. It can move large and small crates alike but doesn't have the means to operate terminals
-- <font color='#00FF00'>Green</font> is the drone. It can move small crates and move over some obstacles like pipes, shelves and pits but it cannot move large crates due to their weight and it can't operate terminals either. Because of it's height, it's camera is pointed downwards instead of forwards.
-- <font color='#00B7FFFF'>Blue</font> is the terminal operator. It can operate terminals, read their values and write to other terminals, but it cannot move crates at all.
+- <font color='#FF0000FF'>Red</font> is the carrier. It can move large and small crates alike but doesn't have the means to operate terminals.
+- <font color='#00FF00'>Green</font> is the drone. It can move small crates and move over some obstacles like pipes, shelves, and pits, but it cannot move large crates due to their weight, and it can't operate terminals either. Because of its height, its camera is pointed downward instead of forward.
+- <font color='#00B7FFFF'>Blue</font> is the terminal operator. It can operate terminals, read their values, and write to other terminals, but it cannot move crates at all.
 
 <font pixel_size="12">1.3. Objectives</font>
 The puzzles are divided into levels, each with a different list of objectives to be completed by the robots. The possible objectives are:
 - Charge bots: This objective requires the specified number of ground robots (<font color='#FF0000FF'>Red</font> or <font color='#00B7FFFF'>Blue</font>) to be on top of a <font color='#DDFF00FF'>ChargePad</font> whenever they finish executing their script.
-- Deliver crates: This objective requires the specified number of crates to be delivered to a <font color='#DDFF00FF'>Crate Delivery Point</font> by the robots (any point is valid in case multiple exist). It has two variations (S)mall crates and (L)arge crates. This objective accounts both for crates laying on the ground and <font color='#DDFF00FF'>Crate Generators</font> that produce crates.
+- Deliver crates: This objective requires the specified number of crates to be delivered to a <font color='#DDFF00FF'>Crate Delivery Point</font> by the robots (any point is valid in case multiple exist). It has two variations: (S)mall crates and (L)arge crates. This objective accounts for both crates laying on the ground and <font color='#DDFF00FF'>Crate Generators</font> that produce crates.
 - Configure terminals: This objective requires the specified number of terminals to be configured by the robots. To successfully configure a terminal, <font color='#00B7FFFF'>Blue</font> must go to the required <font color='#DDFF00FF'>output terminals</font> (indicated by their colors) and input the result of the operation of the numbers obtained from those terminals into the <font color='#DDFF00FF'>input terminal</font>.
-- Collect drives: This is an optional objective. It requires the specified number of drives (disquettes) to be collected by the robots. Drives are not visible to the robots' cameras. To pick them up, the robots must be on the same tile as the drive. At the end of the level, a score bonus is awarded depending on how many drives were collected out of the available ones. The drives are not required to complete the level, but they can be useful to get a better score.
-
+- Collect drives: This is an optional objective. It requires the specified number of drives (disks) to be collected by the robots. Drives are not visible to the robots' cameras. To pick them up, the robots must be on the same tile as the drive. At the end of the level, a score bonus is awarded depending on how many drives were collected out of the available ones. The drives are not required to complete the level, but they can be useful to get a better score.
 
 <font pixel_size="14">2. Basic Robot Actions</font>
-In order to interact with the world, the robots have a set of commands that they can use. These are called "actions", and they are the basic building blocks of any script.
+In order to interact with the world, the robots have a set of commands that they can use. These are called "actions," and they are the basic building blocks of any script.
 
 The actions are:
 - <font color='#DDFF00FF'>move();</font> Moves the bot forward in the direction it is facing.
 - <font color='#DDFF00FF'>turn_left();</font> Turns the bot 90 degrees to the left.
 - <font color='#DDFF00FF'>turn_right();</font> Turns the bot 90 degrees to the right.
 - <font color='#DDFF00FF'>wait();</font> Pauses the bot for 1 tick.
-- <font color='#DDFF00FF'>pickup();</font> Tries to pickup a crate. 
+- <font color='#DDFF00FF'>pickup();</font> Tries to pick up a crate. 
     - <font color='#FF0000FF'>Red</font> will pick up crates in front of it.
     - <font color='#00FF00'>Green</font> will pick up crates underneath it.
     - <font color='#00B7FFFF'>Blue</font> cannot pick up crates.
 - <font color='#DDFF00FF'>drop();</font> Drops the crate in front of the bot.
     - <font color='#FF0000FF'>Red</font> will drop crates to the tile in front. 
-    - <font color='#00FF00'>Green</font> will drop crates to tile underneath it. 
+    - <font color='#00FF00'>Green</font> will drop crates to the tile underneath it. 
     - <font color='#00B7FFFF'>Blue</font> cannot drop crates (because it cannot hold them).
 - <font color='#DDFF00FF'>read();</font> Reads the value of an output terminal in front of it.
     - <font color='#FF0000FF'>Red</font> and <font color='#00FF00'>Green</font> cannot read.
@@ -73,21 +70,21 @@ See can return the following values:
 - "crategen" if the tile contains a large crate generator.
 - "crategen_small" if the tile contains a small crate generator.
 - "cratedel" if the tile contains a crate delivery point.
-- "trap" if the tile contains an active trap, otherwise it will return with the terrain type of the tile (like "wall" or "mid_wall").
-- Drives are not visible by the robots, so see() will ignore them.
+- "trap" if the tile contains an active trap; otherwise, it will return the terrain type of the tile (like "wall" or "mid_wall").
+- Drives are not visible to the robots, so see() will ignore them.
 
 The see() function has these priorities:
-- 1. Object at ground level, like terminals or robots
-- 2. Objects at tile level like charge pads or crate generators
-- 3. Level architecture like walls or paths
+- 1. Object at ground level, like terminals or robots.
+- 2. Objects at tile level, like charge pads or crate generators.
+- 3. Level architecture, like walls or paths.
 
-Example: If <font color='#00FF00'>Green</font> is standing on a mid height wall, see will return "green", instead of "mid_wall".
-Example 2: If a floating drive is on the same tile as <font color='#FF0000FF'>Red</font>, which is standing on a charge pad, see will return "red", instead of "chargepad".
+Example: If <font color='#00FF00'>Green</font> is standing on a mid-height wall, see() will return "green" instead of "mid_wall".
+Example 2: If a floating drive is on the same tile as <font color='#FF0000FF'>Red</font>, which is standing on a charge pad, see() will return "red" instead of "chargepad".
 
-<font pixel_size="14">3. Scripting help</font>
+<font pixel_size="14">3. Scripting Help</font>
 The scripting language comes with a few simple structures to help you write your scripts.
 
-<font pixel_size="12">3.1. Storing values</font>
+<font pixel_size="12">3.1. Storing Values</font>
 You can store values in variables. A variable is a name that refers to a value. Think of it as a box that can hold a value, where the name is a label on the box.
 
 You can give variables any name you want, as long as they start with a letter and are not a reserved word. A reserved word is simply a word the language already uses for something else, like "see" or "if".
@@ -98,7 +95,7 @@ number = 5;
 word = "hello";
 </font>
 
-You can store numbers and words but these last ones need to be encased in double quotes to not be confused with a variable name.
+You can store numbers and words, but words need to be encased in double quotes to avoid confusion with variable names.
 
 Variables can also be obtained from actions, like see() or read().
 Example:
@@ -114,10 +111,10 @@ Example:
 write(value);
 </font>
 
-<font pixel_size="12">3.2. If statements</font>
+<font pixel_size="12">3.2. If Statements</font>
 If statements are used to check if a condition is true or false.
 True or false can be identified with numbers, where 0 is false and any other number is true.
-They are complex strucutes that can be used to check something before executing the script.
+They are complex structures that can be used to check something before executing the script.
 
 Example:
 <font color='#DDFF00FF'>
@@ -138,18 +135,18 @@ if (see() == "wall") {
 }
 </font>
 
-On this example, if the condition is true the robot will turn left, but if it is false the robot will move forward.
+In this example, if the condition is true, the robot will turn left. If it is false, the robot will move forward.
 
-<font pixel_size="12">3.2.1. Condition types</font>
+<font pixel_size="12">3.2.1. Condition Types</font>
 If-Else statements can check a variety of things:
-- <font color='#DDFF00FF'>a == b:</font> Returns 1 (true) if a is equal to b. In case of words, it will check if the words are the same.
-- <font color='#DDFF00FF'>a != b:</font> Returns 1 (true) if a is not equal to b. In case of words, it will check if the words are different.
-- <font color='#DDFF00FF'>a < b:</font></b:> Returns 1 (true) if a is less than b. In case of words, it will check if the first word is shorter than the second one.
-- <font color='#DDFF00FF'>a > b:</font> Returns 1 (true) if a is greater than b. In case of words, it will check if the first word is longer than the second one.
-- <font color='#DDFF00FF'>a <= b:</font> Returns 1 (true) if a is less than or equal to b. In case of words, it will check if the first word is shorter or equal to the second one.
-- <font color='#DDFF00FF'>a >= b:</font> Returns 1 (true) if a is greater than or equal to b. In case of words, it will check if the first word is longer or equal to the second one.
+- <font color='#DDFF00FF'>a == b:</font> Returns 1 (true) if a is equal to b. In the case of words, it will check if the words are the same.
+- <font color='#DDFF00FF'>a != b:</font> Returns 1 (true) if a is not equal to b. In the case of words, it will check if the words are different.
+- <font color='#DDFF00FF'>a < b:</font> Returns 1 (true) if a is less than b. In the case of words, it will check if the first word is shorter than the second one.
+- <font color='#DDFF00FF'>a > b:</font> Returns 1 (true) if a is greater than b. In the case of words, it will check if the first word is longer than the second one.
+- <font color='#DDFF00FF'>a <= b:</font> Returns 1 (true) if a is less than or equal to b. In the case of words, it will check if the first word is shorter or equal to the second one.
+- <font color='#DDFF00FF'>a >= b:</font> Returns 1 (true) if a is greater than or equal to b. In the case of words, it will check if the first word is longer or equal to the second one.
 
-<font pixel_size="12">3.3. Arithmetic and maths</font>
+<font pixel_size="12">3.3. Arithmetic and Math</font>
 The robots are also capable of doing some basic math. You can use the following operators:
 - <font color='#DDFF00FF'>a + b:</font> Adds a and b.
 - <font color='#DDFF00FF'>a - b:</font> Subtracts b from a.
@@ -170,8 +167,8 @@ div = mul / 2;
 Loops are a section of code you want to repeat a number of times. They are very useful for repetitive tasks, like moving forward a number of times or checking the same condition multiple times.
 
 There are two types of loops:
-- <font color='#DDFF00FF'>repeat x {}</font> A repeat loop will repeat the code inside the brackets x times. X on this case can ONLY be a number.
-- <font color='#DDFF00FF'>while (condition) {}</font> A while loop will repeat the code inside the brackets as long as the condition is true. The condition can be any of the conditions described in 2.2.1.
+- <font color='#DDFF00FF'>repeat x {}</font> A repeat loop will repeat the code inside the brackets x times. X in this case can ONLY be a number.
+- <font color='#DDFF00FF'>while (condition) {}</font> A while loop will repeat the code inside the brackets as long as the condition is true. The condition can be any of the conditions described in 3.2.1.
 
 Example:
 <font color='#DDFF00FF'>
@@ -192,7 +189,7 @@ while (see() != "wall") {
 This example will move the robot forward as long as the tile in front of it is not a wall. If it is, the robot will stop moving.
 
 Pro Tip:
-You can get a while loop to behave like a repeat loop using variables.
+You can make a while loop behave like a repeat loop using variables.
 
 Example:
 <font color='#DDFF00FF'>
@@ -205,11 +202,10 @@ while (count < 5) {
 
 This example will move the robot forward 5 times, but it uses a while loop instead of a repeat loop. The variable "count" is used to keep track of how many times the loop has run. Each time the loop runs, "count" is increased by 1 until it reaches 5.
 
-
-<font pixel_size="12">3.5. comments</font>
+<font pixel_size="12">3.5. Comments</font>
 Comments are a way to add notes to your code. They are ignored by the robot and are only there for you to remember what you were doing.
 You can add comments by using the "//" symbol. Everything after the "//" symbol on that line will be ignored by the robot.
-For longer comments you can use the "/*" and "*/" symbols. Everything between these two symbols will be ignored by the robot.
+For longer comments, you can use the "/*" and "*/" symbols. Everything between these two symbols will be ignored by the robot.
 
 Example:
 // This is a comment
@@ -217,13 +213,13 @@ Example:
 that can span multiple lines */
 
 Pro Tip:
-If you suspect a section of your script is causing problems, instead of deleting it, you can comment it out. This way you can keep the code for later reference, but the robot will ignore it.
+If you suspect a section of your script is causing problems, instead of deleting it, you can comment it out. This way, you can keep the code for later reference, but the robot will ignore it.
 
 <font pixel_size="12">3.6. Functions</font>
 Functions are a way to group code together. They are useful for organizing your code and making it easier to read. You can create your own functions and call them from anywhere in your script.
 You probably noticed that the actions are also functions. You can create your own functions and use them in the same way.
 
-To define a function, you need to type "func" followed by a name, a set of parentheses and a set of brackets. The brackets contain the code that will be executed when the function is called.
+To define a function, type "func" followed by a name, a set of parentheses, and a set of brackets. The brackets contain the code that will be executed when the function is called.
 
 Example:
 <font color='#DDFF00FF'>
@@ -233,14 +229,14 @@ func my_function() {
 }
 </font>
 
-You can then execute the code on the function at any time by calling the function name followed by parentheses.
+You can then execute the code in the function at any time by calling the function name followed by parentheses.
 
 Example:
 <font color='#DDFF00FF'>
 my_function();
 </font>
 
-Functions can also have "parameters", similar to how write(x) takes a parameter. A parameter is a value that is passed to the function when it is called. You can use parameters to make your functions more flexible and reusable.
+Functions can also have "parameters," similar to how write(x) takes a parameter. A parameter is a value that is passed to the function when it is called. You can use parameters to make your functions more flexible and reusable.
 
 Example:
 <font color='#DDFF00FF'>
@@ -258,7 +254,7 @@ Example:
 my_function(5);
 </font>
 
-IMPORTANT: Variables defined inside functions or other complex structures like loops are only accesible inside the structure. This means that if you define a variable inside a function, it will not be available outside of that function.
+IMPORTANT: Variables defined inside functions or other complex structures like loops are only accessible inside the structure. This means that if you define a variable inside a function, it will not be available outside of that function.
 
 Example:
 <font color='#DDFF00FF'>
@@ -266,7 +262,7 @@ func my_function() {
     x = 5;
 }
 
-write(x); // This will not work, because x is not defined outside of the function.
+write(x); // This will not work because x is not defined outside of the function.
 </font>
 
 You can take advantage of this to create "private" variables that are only accessible inside the function. This is useful for keeping your code organized and avoiding naming conflicts.
@@ -276,7 +272,7 @@ You can use functions and while loops to create "improved" versions of actions.
 
 Example:
 <font color='#DDFF00FF'>
-move_steps(x) {
+func move_steps(x) {
     steps = 0;
     while (steps < x) {
         move();
@@ -287,12 +283,11 @@ move_steps(x) {
 
 This example creates an improved version of the move() action that takes a number of steps as a parameter. You can then call the function and pass a value to it.
 
-
-<font pixel_size="12">3.7. Advanced scripting</font>
+<font pixel_size="12">3.7. Advanced Scripting</font>
 The language allows for some more advanced features that can be used to create more complex scripts. These features are not necessary for basic scripting, but they can be useful for more advanced users.
 
-<font pixel_size="12">3.7.1. Nested functions</font>
-You can define functions inside other functions. This is called "nesting" and it allows you to create more complex scripts. The inner function will only be accessible inside the outer function.
+<font pixel_size="12">3.7.1. Nested Functions</font>
+You can define functions inside other functions. This is called "nesting," and it allows you to create more complex scripts. The inner function will only be accessible inside the outer function.
 
 Example:
 <font color='#DDFF00FF'>
@@ -306,7 +301,7 @@ func outer_function() {
 outer_function(); // This will call the outer function, which will call the inner function.
 </font>
 
-<font pixel_size="12">3.7.2. Nested loops</font>
+<font pixel_size="12">3.7.2. Nested Loops</font>
 You can also nest loops inside other loops. The inner loop will only be accessible inside the outer loop.
 
 Example:
@@ -318,9 +313,9 @@ repeat 5 {
 }
 </font>
 
-This example will move the robot forward 15 times, because the inner loop will run 3 times for each iteration of the outer loop.
+This example will move the robot forward 15 times because the inner loop will run 3 times for each iteration of the outer loop.
 
-<font pixel_size="12">3.7.3. Nested if statements</font>
+<font pixel_size="12">3.7.3. Nested If Statements</font>
 You can also nest if statements inside other if statements. The inner if statement will only be accessible inside the outer if statement. This can allow you to create more complex conditions.
 
 Example:
@@ -338,7 +333,7 @@ if (see() == "wall") {
 
 This example will check if the tile in front of the robot is a wall. If it is, it will check if the tile in front of it is a red robot. If it is, the robot will turn left. If it is not, the robot will move forward. If the tile in front of the robot is not a wall, the robot will move forward.
 
-<font pixel_size="12">3.7.4. Conditional declaration</font>
+<font pixel_size="12">3.7.4. Conditional Declaration</font>
 Variables and functions can be placed inside an if-else loop. This means that, depending on the condition, the declared function will be different.
 
 Example:
@@ -356,27 +351,26 @@ if (see() == "wall") {
 }
 </font>
 
-On this case, the my_function() function will be different depending on the condition. If the tile in front of the robot is a wall, the function will turn left. If it is not, the function will move forward.
+In this case, the my_function() function will be different depending on the condition. If the tile in front of the robot is a wall, the function will turn left. If it is not, the function will move forward.
 
 <font pixel_size="14">4. Using an IDE</font>
-If you are already familiar with programming, you can use any IDE you want to write your scripts. The language is very similar to C and Java, so any IDE that supports these languages should work. You can even use notepad if you find it more comfortable that the defult editor.
+If you are already familiar with programming, you can use any IDE of your choice to write your scripts. The language is very similar to C and Java, so any IDE that supports these languages should work. You can even use Notepad if you find it more comfortable than the default editor.
 
 First, move the camera AWAY from the robot script you wish to modify, as the script is saved whenever the camera is moved outside of the robot. 
 Then, go to data/level/{x_levelname}/script and find the file {your_name}_{robot_name}.sds. This is the file you need to modify.
-When you are done, save the changes return to the game and move the camera back to the robot. The script will be automatically loaded and you can run it.
+When you are done, save the changes, return to the game, and move the camera back to the robot. The script will be automatically loaded, and you can run it.
 
-
-<font pixel_size="14">5. Creating new levels</font>
-Educators and players alike can create their own levels as they desire, or modify the currently existing ones. To achieve this, you must create the following folder structure:
+<font pixel_size="14">5. Creating New Levels</font>
+Educators and players alike can create their own levels as they desire or modify the currently existing ones. To achieve this, you must create the following folder structure:
 
 <font color='#DDFF00FF'>data/level/{x_levelname}/</font>
 
-Where {x_levelname} is the name of the level you want to create. The name can be anything you want, but it must not contain spaces or special characters. 
+Where {x_levelname} is the name of the level you want to create. The name can be anything you want, but it should not contain spaces or special characters. 
 X is the number that will be used to display it and order it on the list of levels. It can be any number, but it is recommended to use a number that is not already used by another level.
 
 Inside this folder, you must create the following files:
-- <font color='#DDFF00FF'>bg.png</font> (optional): This is the background of your level, it's an image that can be of any size, but it's recomended to use a 64 * height_in_tiles by 64 * width_in_tiles image, as the tiles are 64x64 pixels and the image may appear streched otherwise. The contents of the image do not affect any gameplay, but it is recomended to use a background that represents the actual level structure. A tileset is provided inside the level folder that can be used to structure levels in the same artstyle as the default levels. If no image is provided, the game will generate a "missing texture" image to replace it.
-- <font color='#DDFF00FF'>dialogue.json</font> (optional): This is the file containing the help dialogue shown when loading a level or pressing the "help" button. It is a json file with the following structure:
+- <font color='#DDFF00FF'>bg.png</font> (optional): This is the background of your level. It's an image that can be of any size, but it's recommended to use a 64 * height_in_tiles by 64 * width_in_tiles image, as the tiles are 64x64 pixels, and the image may appear stretched otherwise. The contents of the image do not affect any gameplay, but it is recommended to use a background that represents the actual level structure. A tileset is provided inside the level folder that can be used to structure levels in the same art style as the default levels. If no image is provided, the game will generate a "missing texture" image to replace it.
+- <font color='#DDFF00FF'>dialogue.json</font> (optional): This is the file containing the help dialogue shown when loading a level or pressing the "help" button. It is a JSON file with the following structure:
 <font color='#DDFF00FF'>
     {
         "messages": [
@@ -386,8 +380,8 @@ Inside this folder, you must create the following files:
         ]
     }
 </font>
-    - Messages is a list containing each of the different dialogue boxes that will appear in succession.
-- <font color='#DDFF00FF'>structure.json</font>: This is the level folder that represents how a level actually operates. It is a json file with the following structure:
+    - "messages" is a list containing each of the different dialogue boxes that will appear in succession.
+- <font color='#DDFF00FF'>structure.json</font>: This is the level file that represents how a level actually operates. It is a JSON file with the following structure:
 <font color='#DDFF00FF'>
 {
     "size": [11, 11],
@@ -419,7 +413,7 @@ Inside this folder, you must create the following files:
         { "type": "OutputTer", "x": 9, "y": 1, "color": "#e0f542"},
         { "type": "Crate", "x": 8, "y": 3, "small": true },
         { "type": "Crate", "x": 8, "y": 7, "small": false },
-        { "type": "Collectable", "x": 3, "y": 4 },
+        { "type": "Collectable", "x": 3, "y": 4 }
       ],
       "air": [
         { "type": "Green", "x": 8, "y": 5, "direction": "W" },
@@ -428,17 +422,17 @@ Inside this folder, you must create the following files:
     }
   }
 </font>
-    - Size: This is the size of the level in tiles. It is a list with two numbers, the first one is the width and the second one is the height.
-    - Matrix: This is the level structure, it is a list of lists where each number represents a tile type. The numbers are:
+    - "size": This is the size of the level in tiles. It is a list with two numbers: the first one is the width, and the second one is the height.
+    - "matrix": This is the level structure. It is a list of lists where each number represents a tile type. The numbers are:
         - 0: Empty tile (Floor)
-        - 1: Mid height wall
+        - 1: Mid-height wall
         - 2: Wall
-    - Entities: This is a dictionary with the entity placement. The dictionary has the following keys:
-        - tile: List of entities that lay on the ground. Ground entities can be above them.
-        - ground: List of entities that lay on the ground. Ground entities can be above them.
-        - air: List of entities that are above the ground. Air entities can be above them.
+    - "entities": This is a dictionary with the entity placement. The dictionary has the following keys:
+        - "tile": List of entities that lay on the ground. Ground entities can be above them.
+        - "ground": List of entities that lay on the ground. Ground entities can be above them.
+        - "air": List of entities that are above the ground. Air entities can be above them.
 
-    To add each of the entities, follow the example above to find what parameters they require. It is very important to note that entities that belong to a category, cannot be placed inside another (except for collectables that accept both air and ground placement).
+    To add each of the entities, follow the example above to find what parameters they require. It is very important to note that entities that belong to a category cannot be placed inside another (except for collectables, which accept both air and ground placement).
     Direction has 4 possible values: 
         - N: North
         - S: South
@@ -449,4 +443,4 @@ Inside this folder, you must create the following files:
         - -: Subtraction
         - *: Multiplication
         - /: Division
-    The color inputs accept both hexadecimal colors (like "#42e6f5") and color names (like "red" or "blue"). The available color names are the default pygame colors, which can be found in the pygame documentation (https://www.pygame.org/docs/ref/color_list.html).
+    The color inputs accept both hexadecimal colors (like "#42e6f5") and color names (like "red" or "blue"). The available color names are the default Pygame colors, which can be found in the Pygame documentation (https://www.pygame.org/docs/ref/color_list.html).
